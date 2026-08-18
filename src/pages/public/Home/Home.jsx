@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, BriefcaseBusiness, Building2, EyeOff, Search, ShieldCheck, Sparkles, Target, Users, Zap, Check } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Building2, EyeOff, Search, ShieldCheck, Sparkles, Target, Users, Zap, Check } from 'lucide-react';
 import { Button } from '../../../components/common';
 import { SECTORS } from '../../../utils/constants';
 import './Home.css';
