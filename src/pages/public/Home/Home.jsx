@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Building2, EyeOff, Search, ShieldCheck, Sparkles, Target, Users } from 'lucide-react';
+import { ArrowUpRight, BriefcaseBusiness, Building2, EyeOff, Search, ShieldCheck, Sparkles, Target, Users, Zap, Check } from 'lucide-react';
 import { Button } from '../../../components/common';
 import { SECTORS } from '../../../utils/constants';
 import './Home.css';
@@ -11,6 +11,14 @@ const steps = [
   { number: '03', title: 'Se acerca a la empresa', text: 'Muestra interés sin tener que exponer su identidad desde el principio.' },
   { number: '04', title: 'Ambos deciden', text: 'Contacto, negociación y acuerdo comercial directo.' },
 ];
+
+const opportunity = {
+  sector: 'Alimentación & Horeca',
+  title: 'Marca de café de especialidad busca comerciales',
+  territory: 'Cataluña · Baleares',
+  commission: '8–12%',
+  status: 'Buscando comerciales',
+};
 
 export const Home = () => {
   const [query, setQuery] = useState('');
@@ -25,25 +33,47 @@ export const Home = () => {
     <div className="home-page">
       <section className="home-hero">
         <div className="hero-noise" aria-hidden="true" />
+        <div className="hero-light hero-light-one" aria-hidden="true" />
+        <div className="hero-light hero-light-two" aria-hidden="true" />
         <div className="hero-orbit hero-orbit-one" aria-hidden="true" />
         <div className="hero-orbit hero-orbit-two" aria-hidden="true" />
         <div className="container hero-inner">
-          <div className="eyebrow"><span className="eyebrow-dot" /> El marketplace comercial B2B</div>
-          <h1 className="hero-title">Los productos tienen que llegar <em>a quien sabe venderlos.</em></h1>
-          <p className="hero-lead">Sellio conecta empresas con comerciales independientes. La empresa publica la oportunidad. El comercial la descubre y va a por la venta.</p>
+          <div className="hero-copy">
+            <div className="eyebrow"><span className="eyebrow-dot" /> El marketplace comercial B2B</div>
+            <h1 className="hero-title">Los productos tienen que llegar <em>a quien sabe venderlos.</em></h1>
+            <p className="hero-lead">Sellio conecta empresas con comerciales independientes. La empresa publica la oportunidad. El comercial la descubre y va a por la venta.</p>
 
-          <div className="hero-actions">
-            <Link to="/products"><Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">Explorar oportunidades</Button></Link>
-            <Link to="/register"><Button variant="outline" size="lg">Entrar en Sellio</Button></Link>
+            <div className="hero-actions">
+              <Link to="/products"><Button variant="primary" size="lg" icon={ArrowUpRight} iconPosition="right">Explorar oportunidades</Button></Link>
+              <Link to="/register"><Button variant="outline" size="lg">Entrar en Sellio</Button></Link>
+            </div>
+
+            <form className="hero-search" onSubmit={submitSearch}>
+              <Search size={19} aria-hidden="true" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca un producto, sector o territorio" aria-label="Buscar oportunidades" />
+              <button type="submit">Buscar <ArrowUpRight size={16} /></button>
+            </form>
+
+            <div className="hero-note"><ShieldCheck size={15} /> Los comerciales pueden descubrir oportunidades con identidad pública protegida.</div>
           </div>
 
-          <form className="hero-search" onSubmit={submitSearch}>
-            <Search size={19} aria-hidden="true" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca un producto, sector o territorio" aria-label="Buscar oportunidades" />
-            <button type="submit">Buscar <ArrowUpRight size={16} /></button>
-          </form>
+          <div className="hero-opportunity" aria-label="Ejemplo de oportunidad comercial">
+            <div className="opportunity-topline"><span>OPORTUNIDAD DESTACADA</span><span className="opportunity-live"><i /> Activa ahora</span></div>
+            <div className="opportunity-icon"><Building2 size={22} /></div>
+            <span className="opportunity-sector">{opportunity.sector}</span>
+            <h2>{opportunity.title}</h2>
+            <div className="opportunity-meta"><span><Target size={14} /> {opportunity.territory}</span><span><Zap size={14} /> {opportunity.commission} comisión</span></div>
+            <div className="opportunity-footer"><span><Check size={14} /> {opportunity.status}</span><Link to="/products">Ver oportunidad <ArrowUpRight size={15} /></Link></div>
+          </div>
+        </div>
+      </section>
 
-          <div className="hero-note"><ShieldCheck size={15} /> Los comerciales pueden descubrir oportunidades con identidad pública protegida.</div>
+      <section className="signal-strip">
+        <div className="container signal-grid">
+          <div><strong>01</strong><span>Oportunidades reales</span></div>
+          <div><strong>02</strong><span>Contacto directo</span></div>
+          <div><strong>03</strong><span>Identidad protegida</span></div>
+          <div><strong>04</strong><span>Acuerdos transparentes</span></div>
         </div>
       </section>
 
@@ -108,7 +138,7 @@ export const Home = () => {
             <BriefcaseBusiness size={30} />
             <h2>Encuentra algo que merezca<br />la pena vender.</h2>
             <p>Descubre marcas y productos. Mantén tu identidad protegida. Decide tú cuándo acercarte a la empresa.</p>
-            <Link to="/products"><Button variant="primary" icon={ArrowRight} iconPosition="right">Explorar oportunidades</Button></Link>
+            <Link to="/products"><Button variant="primary" icon={ArrowUpRight} iconPosition="right">Explorar oportunidades</Button></Link>
           </article>
         </div>
       </section>
@@ -130,7 +160,7 @@ export const Home = () => {
         <div className="container final-cta">
           <Sparkles size={18} />
           <h2>Una empresa.<br /><em>Una oportunidad.</em><br />Un comercial que la hace crecer.</h2>
-          <div><Link to="/register"><Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">Entrar en Sellio</Button></Link></div>
+          <div><Link to="/register"><Button variant="primary" size="lg" icon={ArrowUpRight} iconPosition="right">Entrar en Sellio</Button></Link></div>
         </div>
       </section>
     </div>
