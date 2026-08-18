@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { USER_ROLES } from '../../../utils/constants';
@@ -10,13 +10,15 @@ export const Navbar = () => {
   const { user, isAuthenticated, userType, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   const dashboard = userType === USER_ROLES.COMPANY ? '/company/dashboard' : userType === USER_ROLES.SELLER ? '/seller/dashboard' : '/admin/dashboard';
 
   const close = () => setOpen(false);
   const handleLogout = () => { logout(); navigate('/'); close(); };
 
   return (
-    <header className="navbar">
+    <header className={`navbar ${isHome ? 'navbar-home' : ''}`}>
       <div className="navbar-container">
         <Link to="/" className="navbar-brand" onClick={close}>
           <span className="brand-mark">S</span>
