@@ -5,6 +5,7 @@ import { Button } from '../../../components/common';
 import { SECTORS } from '../../../utils/constants';
 import './Home.css';
 import './HomeEnhancements.css';
+import './HomeBrand.css';
 
 const steps = [
   { number: '01', title: 'Una empresa publica', text: 'Producto real, territorio, sector y condiciones comerciales claras.' },
