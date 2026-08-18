@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { USER_ROLES } from '../utils/constants';
+import authService from '../services/auth';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
 export const AuthContext = createContext();
 
@@ -8,7 +10,41 @@ export const AuthProvider = ({ children }) => {
     const saved = localStorage.getItem('sellio_user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Sincronización inicial
+    const initAuth = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+        }
+      } catch (err) {
+        console.error('Error al inicializar sesión:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // Listener de Supabase Auth
+    if (isSupabaseConfigured() && supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          const u = await authService.getCurrentUser();
+          setUser(u);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      });
+
+      return () => {
+        subscription?.unsubscribe();
+      };
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -18,28 +54,31 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const login = async (userData) => {
+  const login = async (credentials) => {
     setLoading(true);
-    // Mock login behavior for initial MVP structure
-    const authenticatedUser = {
-      id: userData.id || 'usr_demo_123',
-      name: userData.name || (userData.role === USER_ROLES.COMPANY ? 'TechNova Soluciones B2B' : 'Carlos Méndez (Comercial)'),
-      email: userData.email || 'demo@sellio.com',
-      role: userData.role || USER_ROLES.COMPANY,
-      avatar: userData.avatar || null,
-      companyName: userData.role === USER_ROLES.COMPANY ? 'TechNova SL' : null
-    };
-
-    setUser(authenticatedUser);
-    localStorage.setItem('sellio_token', 'mock_jwt_token_sample');
-    setLoading(false);
-    return authenticatedUser;
+    try {
+      const res = await authService.login(credentials);
+      setUser(res.user);
+      return res.user;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = () => {
+  const register = async (userData) => {
+    setLoading(true);
+    try {
+      const res = await authService.register(userData);
+      setUser(res.user);
+      return res.user;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
-    localStorage.removeItem('sellio_user');
-    localStorage.removeItem('sellio_token');
   };
 
   const switchRole = (newRole) => {
@@ -48,9 +87,9 @@ export const AuthProvider = ({ children }) => {
       ...prev,
       role: newRole,
       name: newRole === USER_ROLES.COMPANY 
-        ? 'TechNova Soluciones B2B' 
+        ? (prev.companyName || 'TechNova Soluciones B2B')
         : newRole === USER_ROLES.SELLER 
-          ? 'Carlos Méndez (Comercial)' 
+          ? (prev.publicAlias || 'Comercial #A482') 
           : 'Super Admin Sellio'
     }));
   };
@@ -63,6 +102,7 @@ export const AuthProvider = ({ children }) => {
         userType: user?.role || null,
         loading,
         login,
+        register,
         logout,
         switchRole
       }}

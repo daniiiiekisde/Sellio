@@ -1,34 +1,27 @@
 import React, { useState } from 'react';
-import { Send, Building2, MessageSquare, User } from 'lucide-react';
+import { Send, MessageSquare, User, ShieldCheck } from 'lucide-react';
 import { useMessages } from '../../../hooks/useMessages';
 import { Button } from '../../../components/common';
 import { DashboardHeader } from '../../../components/dashboard';
 import './Messages.css';
 
 export const CompanyMessages = () => {
-  const { conversations, activeConversation, setActiveConversation } = useMessages();
+  const { conversations, activeConversation, setActiveConversation, messages, sendMessage, loading } = useMessages();
   const [inputText, setInputText] = useState('');
-  const [messagesList, setMessagesList] = useState([
-    { id: 1, sender: 'other', text: 'Hola, he revisado la oportunidad de distribución en Cataluña para vuestro Aceite Virgen Extra. Me interesa presentar candidatura formal.', time: '10:30' },
-    { id: 2, sender: 'me', text: 'Hola Carlos, excelente. ¿Qué tipo de restaurantes y cuentas manejas en Barcelona y Girona?', time: '10:35' },
-    { id: 3, sender: 'other', text: 'Llevo más de 80 clientes en hostelería gourmet y restaurantes con distintivo Michelin. El PVP de 18.50€ encaja a la perfección con la comisión del 15%.', time: '10:45' }
-  ]);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
-    setMessagesList(prev => [
-      ...prev,
-      { id: Date.now(), sender: 'me', text: inputText.trim(), time: 'Ahora' }
-    ]);
+    const textToSend = inputText.trim();
     setInputText('');
+    await sendMessage(textToSend, 'company');
   };
 
   return (
     <div className="company-messages-page">
       <DashboardHeader
         title="Centro de Mensajes Comerciales"
-        subtitle="Comunícate directamente con los agentes comerciales que representan tus marcas."
+        subtitle="Comunícate directamente con los agentes comerciales cuyas propuestas de interés has aceptado."
       />
 
       <div className="messages-layout-box">
@@ -38,24 +31,30 @@ export const CompanyMessages = () => {
             <h3 className="conversations-title">Conversaciones Abiertas</h3>
           </div>
           <div className="conversations-list">
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                className={`conversation-item ${activeConversation?.id === conv.id ? 'active' : ''}`}
-                onClick={() => setActiveConversation(conv)}
-              >
-                <div className="conv-avatar">
-                  <User size={18} />
-                </div>
-                <div className="conv-info">
-                  <div className="conv-name-row">
-                    <span className="conv-name">{conv.contactName}</span>
-                    <span className="conv-time">{conv.timestamp}</span>
-                  </div>
-                  <p className="conv-last-msg">{conv.lastMessage}</p>
-                </div>
+            {conversations.length === 0 ? (
+              <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                No hay conversaciones activas. Acepta solicitudes de comerciales en la sección "Comerciales Interesados" para abrir un chat.
               </div>
-            ))}
+            ) : (
+              conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`conversation-item ${activeConversation?.id === conv.id ? 'active' : ''}`}
+                  onClick={() => setActiveConversation(conv)}
+                >
+                  <div className="conv-avatar">
+                    <User size={18} />
+                  </div>
+                  <div className="conv-info">
+                    <div className="conv-name-row">
+                      <span className="conv-name">{conv.contactName}</span>
+                      <span className="conv-time">{conv.timestamp}</span>
+                    </div>
+                    <p className="conv-last-msg">{conv.lastMessage}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -70,20 +69,32 @@ export const CompanyMessages = () => {
                   </div>
                   <div>
                     <h4>{activeConversation.contactName}</h4>
-                    <span className="chat-online-status">En línea &bull; Comercial Verificado</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      <ShieldCheck size={14} color="#10b981" />
+                      <span>{activeConversation.opportunityTitle || 'Canal comercial activo'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="chat-messages-container">
-                {messagesList.map((m) => (
-                  <div key={m.id} className={`chat-bubble-row ${m.sender === 'me' ? 'bubble-me' : 'bubble-other'}`}>
-                    <div className="chat-bubble">
-                      <p>{m.text}</p>
-                      <span className="bubble-time">{m.time}</span>
-                    </div>
+                {messages.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                    Inicia la conversación con el comercial.
                   </div>
-                ))}
+                ) : (
+                  messages.map((m) => (
+                    <div
+                      key={m.id}
+                      className={`chat-bubble-row ${m.sender === 'company' || m.sender === 'me' ? 'bubble-me' : 'bubble-other'}`}
+                    >
+                      <div className="chat-bubble">
+                        <p>{m.text || m.content}</p>
+                        <span className="bubble-time">{m.time || 'Ahora'}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
               <form onSubmit={handleSend} className="chat-input-bar">

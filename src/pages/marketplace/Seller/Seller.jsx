@@ -11,15 +11,18 @@ export const Seller = () => {
 
   const seller = {
     id: id || 'sell_1',
-    name: 'Carlos Méndez',
+    anonymousId: 'COMERCIAL #A482',
+    name: 'Comercial #A482',
     headline: 'Agente Comercial Senior HORECA & Alimentación Gourmet',
     sector: 'Alimentación y Bebidas (HORECA)',
     region: 'Cataluña (Barcelona, Girona, Tarragona)',
-    experience: '12 años de experiencia',
+    experience: '+12 años de experiencia',
     verified: true,
+    languages: ['Español', 'Catalán', 'Inglés'],
+    clientType: 'Restaurantes gastronómicos, Cadenas hoteleras, Tiendas Delicatessen',
     bio: 'Cartera consolidada de más de 80 restaurantes estrella y grupos de restauración en Barcelona y Girona. Enfoque en productos gourmet con valor añadido y distribución selectiva.',
-    skills: ['Canal HORECA', 'Negociación B2B', 'Distribución Selectiva', 'Gestión de Cuentas Clave'],
-    currentBrands: ['Vinos D.O. Penedès', 'Jamones Ibéricos Reserva']
+    skills: ['Canal HORECA', 'Negociación B2B', 'Distribución Selectiva', 'Gestión de Cuentas Clave', 'Cata y Prescripción'],
+    currentBrands: ['Vinos D.O. Penedès', 'Conservas Artesanas del Cantábrico', 'Jamones Ibéricos Reserva']
   };
 
   const handleContact = () => {
@@ -36,14 +39,15 @@ export const Seller = () => {
       <div className="seller-detail-layout">
         <div className="seller-detail-main">
           <div className="seller-header-card">
-            <div className="seller-avatar-large">
-              <User size={40} />
+            <div className="seller-avatar-large" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8' }}>
+              <ShieldCheck size={40} />
             </div>
             <div className="seller-header-info">
               <div className="seller-name-row">
-                <h1>{seller.name}</h1>
+                <h1>{seller.anonymousId}</h1>
+                <span className="badge badge-secondary" style={{ fontSize: '12px' }}>🔒 Perfil Anónimo</span>
                 {seller.verified && (
-                  <span className="badge badge-primary"><ShieldCheck size={14} /> Verificado</span>
+                  <span className="badge badge-primary"><ShieldCheck size={14} /> Verificado por Sellio</span>
                 )}
               </div>
               <p className="seller-headline-text">{seller.headline}</p>
@@ -55,8 +59,13 @@ export const Seller = () => {
           </div>
 
           <div className="seller-bio-card">
-            <h3 className="section-title">Sobre mi trayectoria y cartera</h3>
+            <h3 className="section-title">Sobre trayectoria y cartera de clientes</h3>
             <p className="seller-bio-text">{seller.bio}</p>
+
+            <h4 className="subsection-title">Tipo de Clientes que atiende</h4>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: '#cbd5e1', marginBottom: '1.25rem' }}>
+              {seller.clientType}
+            </p>
 
             <h4 className="subsection-title">Especialidades comerciales</h4>
             <div className="skills-pills">
@@ -65,7 +74,7 @@ export const Seller = () => {
               ))}
             </div>
 
-            <h4 className="subsection-title">Marcas o líneas afines representadas</h4>
+            <h4 className="subsection-title">Líneas afines representadas</h4>
             <ul className="brands-list">
               {seller.currentBrands.map((b, i) => (
                 <li key={i}><CheckCircle2 size={16} /> {b}</li>
@@ -76,10 +85,16 @@ export const Seller = () => {
 
         <div className="seller-detail-sidebar">
           <div className="contact-seller-card">
-            <h3>Proponer Representación</h3>
-            <p>Invita a {seller.name} a conocer tu catálogo y negociar un acuerdo comercial.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span className="badge badge-primary">Privacidad Sellio</span>
+            </div>
+            <h3>Proponer Oportunidad</h3>
+            <p>Invita al {seller.anonymousId} a conocer tu catálogo de productos y condiciones de comisión.</p>
+            <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '0.5rem', marginBottom: '1.25rem' }}>
+              La identidad privada del comercial se revelará únicamente tras mutuo acuerdo.
+            </p>
             <Button variant="primary" fullWidth size="lg" icon={Send} onClick={() => setModalOpen(true)}>
-              Contactar con el comercial
+              Proponer Oportunidad
             </Button>
           </div>
         </div>
@@ -88,21 +103,21 @@ export const Seller = () => {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={`Contactar con ${seller.name}`}
+        title={`Proponer Oportunidad a ${seller.anonymousId}`}
       >
         {sent ? (
           <div className="success-modal-message">
             <CheckCircle2 size={44} className="success-icon" />
-            <h3>¡Mensaje de invitación enviado!</h3>
-            <p>El comercial recibirá tu notificación y podrá revisar tus productos.</p>
+            <h3>¡Propuesta comercial enviada!</h3>
+            <p>El comercial recibirá tu invitación y podrá revisar tus oportunidades y productos.</p>
           </div>
         ) : (
           <div>
-            <label className="form-label">Mensaje para {seller.name}:</label>
+            <label className="form-label">Mensaje de invitación para {seller.anonymousId}:</label>
             <textarea
               className="form-textarea"
               rows={4}
-              defaultValue={`Hola ${seller.name}, represento a una empresa de ${seller.sector} y nos interesa tu perfil para expandir ventas en ${seller.region}.`}
+              defaultValue={`Hola ${seller.anonymousId}, representamos a una empresa fabricante en ${seller.sector} y nos interesa tu experiencia para expandir ventas en ${seller.region}. Te invitamos a conocer nuestras oportunidades activas.`}
             />
             <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
               <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>

@@ -1,51 +1,66 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { messagesService } from '../services/messages';
 
 export const useMessages = () => {
   const [conversations, setConversations] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [activeConversation, setActiveConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     setLoading(true);
     try {
-      const mockConversations = [
-        {
-          id: 'conv_1',
-          contactName: 'Iberia Gourmet SL (Director Comercial)',
-          lastMessage: 'Hola Carlos, nos gustaría revisar tu experiencia en el canal HORECA.',
-          timestamp: '10:45',
-          unreadCount: 1,
-          avatar: null
-        },
-        {
-          id: 'conv_2',
-          contactName: 'SolarTech Solutions',
-          lastMessage: 'Te enviamos las condiciones del acuerdo y el catálogo industrial.',
-          timestamp: 'Ayer',
-          unreadCount: 0,
-          avatar: null
-        }
-      ];
-      setConversations(mockConversations);
-      if (mockConversations.length > 0) {
-        setActiveConversation(mockConversations[0]);
+      const data = await messagesService.getConversations();
+      setConversations(data || []);
+      if (data && data.length > 0 && !activeConversation) {
+        setActiveConversation(data[0]);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching conversations:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeConversation]);
+
+  const loadMessages = useCallback(async (convId) => {
+    if (!convId) return;
+    const msgs = await messagesService.getMessagesByConversation(convId);
+    setMessages(msgs || []);
+  }, []);
 
   useEffect(() => {
     fetchConversations();
-  }, []);
+
+    const handleUpdate = () => {
+      fetchConversations();
+      if (activeConversation?.id) {
+        loadMessages(activeConversation.id);
+      }
+    };
+
+    window.addEventListener('sellio_messages_updated', handleUpdate);
+    return () => window.removeEventListener('sellio_messages_updated', handleUpdate);
+  }, [fetchConversations, activeConversation, loadMessages]);
+
+  useEffect(() => {
+    if (activeConversation?.id) {
+      loadMessages(activeConversation.id);
+    }
+  }, [activeConversation, loadMessages]);
+
+  const sendMessage = async (text, sender = 'seller') => {
+    if (!activeConversation?.id || !text.trim()) return;
+    const newMsg = await messagesService.sendMessage(activeConversation.id, text, sender);
+    setMessages(prev => [...prev, newMsg]);
+    return newMsg;
+  };
 
   return {
     conversations,
     activeConversation,
     setActiveConversation,
+    messages,
+    sendMessage,
     loading,
     refetch: fetchConversations
   };

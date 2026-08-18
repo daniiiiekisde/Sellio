@@ -1,54 +1,58 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Tag, Percent, MapPin, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, CheckCircle2 } from 'lucide-react';
 import { Button, Modal } from '../../../components/common';
 import { DashboardHeader } from '../../../components/dashboard';
 import { useProducts } from '../../../hooks/useProducts';
-import { SECTORS, REGIONS } from '../../../utils/constants';
+import { SECTORS } from '../../../utils/constants';
 
 export const CompanyProducts = () => {
-  const { products } = useProducts();
+  const { products, addProduct, removeProduct, loading } = useProducts();
   const [modalOpen, setModalOpen] = useState(false);
-  const [productList, setProductList] = useState([
-    {
-      id: 1,
-      name: 'Aceite de Oliva Virgen Extra Ecológico Gran Selección (500ml)',
-      category: 'Alimentación y Bebidas (HORECA)',
-      price: 18.50,
-      stockStatus: 'Disponible',
-      status: 'Activo'
-    },
-    {
-      id: 2,
-      name: 'Conservas Artesanales Gourmet — Bonito del Norte',
-      category: 'Alimentación y Bebidas (HORECA)',
-      price: 12.00,
-      stockStatus: 'Disponible',
-      status: 'Activo'
-    }
-  ]);
-
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: SECTORS[0],
-    price: '',
-    stockStatus: 'Disponible'
+    description: '',
+    targetPrice: '',
+    suggestedCommission: '15%'
   });
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    setProductList(prev => [
-      ...prev,
-      { ...newProduct, id: Date.now(), status: 'Activo' }
-    ]);
-    setModalOpen(false);
-    setNewProduct({ name: '', category: SECTORS[0], price: '', stockStatus: 'Disponible' });
+    try {
+      await addProduct({
+        name: newProduct.name,
+        category: newProduct.category,
+        description: newProduct.description,
+        targetPrice: newProduct.targetPrice ? `${newProduct.targetPrice} €` : 'A consultar',
+        suggestedCommission: newProduct.suggestedCommission,
+        status: 'published',
+        is_real_product_confirmed: true,
+        available_for_sales: true
+      });
+      setModalOpen(false);
+      setNewProduct({
+        name: '',
+        category: SECTORS[0],
+        description: '',
+        targetPrice: '',
+        suggestedCommission: '15%'
+      });
+    } catch (err) {
+      alert('Error al añadir producto: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Seguro que deseas eliminar este producto del catálogo?')) {
+      await removeProduct(id);
+    }
   };
 
   return (
     <div className="company-products-page">
       <DashboardHeader
         title="Catálogo de Productos"
-        subtitle="Gestiona el catálogo oficial de productos que tu empresa comercializa."
+        subtitle="Gestiona el catálogo oficial de productos reales que tu empresa comercializa y vincula a oportunidades."
         action={
           <Button variant="primary" icon={Plus} onClick={() => setModalOpen(true)}>
             Añadir Producto al Catálogo
@@ -57,35 +61,54 @@ export const CompanyProducts = () => {
       />
 
       <div className="dash-card" style={{ marginTop: '1.5rem' }}>
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Sector / Categoría</th>
-              <th>PVP Orientativo</th>
-              <th>Disponibilidad</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productList.map(p => (
-              <tr key={p.id}>
-                <td><strong>{p.name}</strong></td>
-                <td>{p.category}</td>
-                <td>{typeof p.price === 'number' ? `${p.price.toFixed(2)} €` : p.price}</td>
-                <td><span className="badge badge-primary">{p.stockStatus}</span></td>
-                <td><span className="badge badge-success">{p.status}</span></td>
-                <td>
-                  <div className="table-actions">
-                    <Button variant="ghost" size="sm"><Edit size={16} /></Button>
-                    <Button variant="ghost" size="sm"><Trash2 size={16} color="#ef4444" /></Button>
-                  </div>
-                </td>
+        {loading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Cargando catálogo...</div>
+        ) : products.length === 0 ? (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            <Package size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+            <p>No tienes productos registrados en el catálogo.</p>
+          </div>
+        ) : (
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Sector / Categoría</th>
+                <th>PVP Orientativo</th>
+                <th>Comisión Sugerida</th>
+                <th>Verificación</th>
+                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {products.map(p => (
+                <tr key={p.id}>
+                  <td>
+                    <strong>{p.name}</strong>
+                    {p.description && <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{p.description.slice(0, 70)}...</div>}
+                  </td>
+                  <td>{p.category}</td>
+                  <td>{p.targetPrice || (typeof p.price === 'number' ? `${p.price.toFixed(2)} €` : p.price || '-')}</td>
+                  <td><span className="badge badge-primary">{p.suggestedCommission || p.commissionRate || '15%'}</span></td>
+                  <td>
+                    <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle2 size={12} /> Real Verificado
+                    </span>
+                  </td>
+                  <td><span className="badge badge-success">{p.status === 'published' ? 'Publicado' : p.status || 'Activo'}</span></td>
+                  <td>
+                    <div className="table-actions">
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)}>
+                        <Trash2 size={16} color="#ef4444" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <Modal
@@ -95,7 +118,7 @@ export const CompanyProducts = () => {
       >
         <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="form-group">
-            <label className="form-label">Nombre del Producto</label>
+            <label className="form-label">Nombre del Producto Real</label>
             <input
               type="text"
               className="form-input"
@@ -107,7 +130,7 @@ export const CompanyProducts = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Sector</label>
+            <label className="form-label">Sector / Categoría</label>
             <select
               className="form-select"
               value={newProduct.category}
@@ -118,21 +141,44 @@ export const CompanyProducts = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Precio Orientativo PVP (€)</label>
-            <input
-              type="number"
-              step="0.01"
-              className="form-input"
-              required
-              value={newProduct.price}
-              onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || '' })}
-              placeholder="18.50"
+            <label className="form-label">Descripción del Producto</label>
+            <textarea
+              className="form-textarea"
+              rows={2}
+              value={newProduct.description}
+              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+              placeholder="Características técnicas, packaging, formato de venta..."
             />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label className="form-label">Precio Orientativo PVP (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                className="form-input"
+                value={newProduct.targetPrice}
+                onChange={(e) => setNewProduct({ ...newProduct, targetPrice: e.target.value })}
+                placeholder="18.50"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Comisión Estimada (%)</label>
+              <input
+                type="text"
+                className="form-input"
+                value={newProduct.suggestedCommission}
+                onChange={(e) => setNewProduct({ ...newProduct, suggestedCommission: e.target.value })}
+                placeholder="15%"
+              />
+            </div>
           </div>
 
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
-            <Button variant="primary" type="submit">Guardar Producto</Button>
+            <Button variant="primary" type="submit">Guardar Producto en Catálogo</Button>
           </div>
         </form>
       </Modal>

@@ -1,10 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Percent, Building2, Sparkles, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { Building2, MapPin, Percent, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Target } from 'lucide-react';
 import Button from '../../common/Button';
 import './OpportunityCard.css';
 
-export const OpportunityCard = ({ opportunity, onApplyClick }) => {
+export const OpportunityCard = ({ opportunity, onInterestClick }) => {
   const {
     id,
     title,
@@ -14,69 +13,66 @@ export const OpportunityCard = ({ opportunity, onApplyClick }) => {
     commissionRate,
     requirements,
     description,
-    matchScore
+    matchScore,
+    status
   } = opportunity || {};
 
   return (
     <div className="opportunity-card">
-      <div className="opp-card-glow-beam"></div>
+      <div className="opp-glow-line"></div>
 
       <div className="opp-card-header">
-        <div className="opp-badge-group">
-          {sector && <span className="badge badge-primary">{sector}</span>}
-          {matchScore && (
-            <span className="badge badge-success">
-              <span className="live-dot"></span> Match {matchScore}%
-            </span>
-          )}
+        <div className="opp-company-badge">
+          <Building2 size={14} />
+          <span>{company}</span>
+          <ShieldCheck size={13} className="opp-verified-icon" title="Empresa Verificada" />
         </div>
+        {matchScore && (
+          <span className="badge badge-success opp-match-badge">
+            <Sparkles size={12} /> Afinidad {matchScore}%
+          </span>
+        )}
       </div>
 
-      <div className="opp-card-body">
-        <div className="opp-company-row">
-          <div className="opp-company-icon">
-            <Building2 size={13} />
+      <h3 className="opp-card-title">{title}</h3>
+      <p className="opp-card-desc">{description}</p>
+
+      {requirements && (
+        <div className="opp-requirements-box">
+          <div className="req-label">
+            <Target size={12} /> Perfil / Cartera requerida:
           </div>
-          <span className="opp-company-name">{company}</span>
+          <p className="req-text">{requirements}</p>
         </div>
+      )}
 
-        <h3 className="opp-title">
-          <Link to={`/products?opportunity=${id}`}>{title}</Link>
-        </h3>
-
-        <p className="opp-desc">{description}</p>
-
-        {requirements && (
-          <div className="opp-requirements-chip">
-            <CheckCircle2 size={13} className="req-check" />
-            <span>{requirements}</span>
-          </div>
-        )}
-
-        <div className="opp-meta-grid">
-          {commissionRate && (
-            <div className="opp-meta-item">
-              <span className="opp-meta-label">Condiciones:</span>
-              <span className="opp-meta-val opp-commission">{commissionRate}</span>
-            </div>
-          )}
-          {targetTerritory && (
-            <div className="opp-meta-item">
-              <span className="opp-meta-label">Territorio:</span>
-              <span className="opp-meta-val"><MapPin size={12} /> {targetTerritory}</span>
-            </div>
-          )}
+      <div className="opp-meta-grid">
+        <div className="opp-meta-item">
+          <span className="opp-meta-title">Zona / Territorio</span>
+          <span className="opp-meta-value"><MapPin size={13} /> {targetTerritory}</span>
+        </div>
+        <div className="opp-meta-item">
+          <span className="opp-meta-title">Sector</span>
+          <span className="opp-meta-value">{sector}</span>
+        </div>
+        <div className="opp-meta-item opp-commission-box">
+          <span className="opp-meta-title">Condiciones de Comisión</span>
+          <span className="opp-commission-val"><Percent size={13} /> {commissionRate}</span>
         </div>
       </div>
 
       <div className="opp-card-footer">
-        <span className="opp-status-pill">Oportunidad Activa</span>
+        <div className="opp-status-tag">
+          <span className="status-indicator"></span>
+          <span>Oportunidad {status || 'Activa'}</span>
+        </div>
         <Button
           variant="primary"
           size="sm"
-          onClick={() => onApplyClick && onApplyClick(opportunity)}
+          icon={ArrowRight}
+          onClick={() => onInterestClick && onInterestClick(opportunity)}
         >
-          Presentar Candidatura
+          Me interesa esta oportunidad
         </Button>
       </div>
     </div>
