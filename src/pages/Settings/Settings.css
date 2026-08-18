@@ -1,0 +1,84 @@
+.settings-page {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-16);
+  max-width: 800px;
+}
+
+.settings-header {
+  margin-bottom: var(--space-6);
+}
+
+.settings-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+}
+
+.settings-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.settings-sections-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.settings-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-box-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  color: var(--primary);
+}
+
+.settings-box-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.settings-toggles-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.toggle-label input {
+  margin-top: 0.25rem;
+  accent-color: var(--primary);
+  width: 18px;
+  height: 18px;
+}
+
+.toggle-label strong {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.toggle-label p {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.settings-actions-group {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}

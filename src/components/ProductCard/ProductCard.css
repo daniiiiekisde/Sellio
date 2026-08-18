@@ -1,0 +1,199 @@
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  overflow: hidden;
+  position: relative;
+}
+
+.product-card-glow-beam {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all var(--transition-normal);
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.7), 0 0 25px rgba(99, 102, 241, 0.2);
+}
+
+.product-card:hover .product-card-glow-beam {
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, transparent, #818cf8, #c084fc, transparent);
+}
+
+.product-card-top {
+  padding: var(--space-5) var(--space-5) 0 var(--space-5);
+}
+
+.product-card-badge-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.product-category-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.match-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.product-card-content {
+  padding: var(--space-4) var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card-company {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.company-avatar-pill {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.company-name {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.product-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.35;
+  margin-bottom: var(--space-2);
+}
+
+.product-card-title a {
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
+.product-card-title a:hover {
+  color: #818cf8;
+}
+
+.product-card-desc {
+  font-size: var(--font-size-sm);
+  color: #94a3b8;
+  line-height: 1.55;
+  margin-bottom: var(--space-4);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-card-meta {
+  margin-top: auto;
+  padding: var(--space-3);
+  background: rgba(6, 9, 14, 0.5);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+}
+
+.meta-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.meta-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.commission-highlight {
+  color: #818cf8;
+  font-weight: 800;
+  background: rgba(99, 102, 241, 0.15);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.price-highlight {
+  color: #cbd5e1;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.product-card-footer {
+  padding: var(--space-3) var(--space-5);
+  background-color: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: #94a3b8;
+  transition: color var(--transition-fast);
+}
+
+.btn-detail-link:hover {
+  color: #ffffff;
+}
+
+.detail-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.btn-detail-link:hover .detail-arrow {
+  transform: translate(2px, -2px);
+}

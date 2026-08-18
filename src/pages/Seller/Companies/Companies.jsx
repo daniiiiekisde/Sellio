@@ -1,0 +1,12 @@
+import React from 'react';
+import Companies from '../../Companies';
+
+export const SellerCompanies = () => {
+  return (
+    <div className="seller-companies-view">
+      <Companies />
+    </div>
+  );
+};
+
+export default SellerCompanies;
