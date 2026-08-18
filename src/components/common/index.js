@@ -10,6 +10,10 @@ export * from './Modal';
 export { default as SearchBar } from './SearchBar';
 export * from './SearchBar';
 
+export { default as LoadingScreen } from './LoadingScreen';
+export * from './LoadingScreen';
+
 export { default as ProtectedRoute } from './ProtectedRoute';
 export * from './ProtectedRoute';
+
 
