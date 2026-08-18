@@ -7,7 +7,7 @@ import { Button } from '../../../components/common';
 import './Register.css';
 
 export const Register = () => {
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [role, setRole] = useState(USER_ROLES.COMPANY);
@@ -20,15 +20,42 @@ export const Register = () => {
     companyName: ''
   });
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await login({ ...formData, role });
-    setLoading(false);
+    setStatusMessage(null);
+    try {
+      const res = await register({
+        email: formData.email,
+        password: formData.password,
+        role,
+        profileData: {
+          displayName: formData.name,
+          companyName: formData.companyName,
+          sector: formData.sector,
+          region: formData.region
+        }
+      });
 
-    if (role === USER_ROLES.COMPANY) navigate('/company/dashboard');
-    else navigate('/seller/dashboard');
+      if (res?.requiresConfirmation) {
+        setStatusMessage({
+          type: 'info',
+          text: '¡Cuenta creada! Hemos enviado un enlace de confirmación a tu correo. Por favor confírmalo antes de iniciar sesión.'
+        });
+      } else {
+        if (role === USER_ROLES.COMPANY) navigate('/company/dashboard');
+        else navigate('/seller/dashboard');
+      }
+    } catch (err) {
+      setStatusMessage({
+        type: 'error',
+        text: err.message || 'Ocurrió un error al registrar la cuenta.'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,6 +93,21 @@ export const Register = () => {
           </div>
         </div>
       </div>
+
+      {statusMessage && (
+        <div style={{
+          padding: '0.85rem 1.1rem',
+          borderRadius: '8px',
+          marginBottom: '1.25rem',
+          fontSize: '0.875rem',
+          lineHeight: '1.4',
+          background: statusMessage.type === 'info' ? 'rgba(59, 130, 246, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+          border: `1px solid ${statusMessage.type === 'info' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          color: statusMessage.type === 'info' ? '#93C5FD' : '#FCA5A5'
+        }}>
+          {statusMessage.text}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="register-form">
         <div className="form-group">

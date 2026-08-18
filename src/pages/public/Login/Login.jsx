@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Building2, Briefcase, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { USER_ROLES } from '../../../utils/constants';
@@ -9,6 +9,7 @@ import './Login.css';
 export const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -16,16 +17,33 @@ export const Login = () => {
     role: USER_ROLES.COMPANY
   });
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await login(formData);
-    setLoading(false);
-
-    if (formData.role === USER_ROLES.COMPANY) navigate('/company/dashboard');
-    else if (formData.role === USER_ROLES.SELLER) navigate('/seller/dashboard');
-    else navigate('/admin/dashboard');
+    setErrorMessage(null);
+    try {
+      const loggedUser = await login(formData);
+      const userRole = loggedUser?.role || formData.role;
+      
+      const fromPath = location.state?.from?.pathname;
+      if (fromPath && (
+        (userRole === USER_ROLES.COMPANY && fromPath.startsWith('/company')) ||
+        (userRole === USER_ROLES.SELLER && fromPath.startsWith('/seller')) ||
+        (userRole === USER_ROLES.ADMIN && fromPath.startsWith('/admin'))
+      )) {
+        navigate(fromPath, { replace: true });
+      } else {
+        if (userRole === USER_ROLES.COMPANY) navigate('/company/dashboard', { replace: true });
+        else if (userRole === USER_ROLES.SELLER) navigate('/seller/dashboard', { replace: true });
+        else navigate('/admin/dashboard', { replace: true });
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Credenciales inválidas o error de conexión.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleQuickDemo = (role) => {
@@ -38,6 +56,21 @@ export const Login = () => {
         <h1 className="login-title">Iniciar sesión</h1>
         <p className="login-subtitle">Accede a tu panel en Sellio B2B</p>
       </div>
+
+      {errorMessage && (
+        <div style={{
+          padding: '0.85rem 1.1rem',
+          borderRadius: '8px',
+          marginBottom: '1.25rem',
+          fontSize: '0.875rem',
+          lineHeight: '1.4',
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#FCA5A5'
+        }}>
+          {errorMessage}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="login-form">
         {/* Role Selector Pills */}

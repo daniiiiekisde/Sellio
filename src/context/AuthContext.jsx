@@ -54,6 +54,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
+  const isDemoMode = Boolean(user?.isDemo || !isSupabaseConfigured() || import.meta.env.DEV);
+
   const login = async (credentials) => {
     setLoading(true);
     try {
@@ -69,8 +71,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await authService.register(userData);
-      setUser(res.user);
-      return res.user;
+      // Si requiere confirmación de email, no asignamos la sesión inmediatamente
+      if (!res.requiresConfirmation && res.user) {
+        setUser(res.user);
+      }
+      return res;
     } finally {
       setLoading(false);
     }
@@ -83,6 +88,13 @@ export const AuthProvider = ({ children }) => {
 
   const switchRole = (newRole) => {
     if (!user) return;
+    
+    // Seguridad: en producción real con Supabase no se permite cambio arbitrario de rol en el cliente
+    if (!isDemoMode && !user.isDemo) {
+      console.warn('Cambio de rol no permitido en entorno de producción sin autorización.');
+      return;
+    }
+
     setUser(prev => ({
       ...prev,
       role: newRole,
@@ -100,6 +112,7 @@ export const AuthProvider = ({ children }) => {
         user,
         isAuthenticated: !!user,
         userType: user?.role || null,
+        isDemoMode,
         loading,
         login,
         register,

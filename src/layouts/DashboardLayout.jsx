@@ -26,7 +26,7 @@ import { USER_ROLES, USER_ROLE_LABELS } from '../utils/constants';
 import './DashboardLayout.css';
 
 export const DashboardLayout = () => {
-  const { user, userType, logout, switchRole } = useAuth();
+  const { user, userType, isDemoMode, logout, switchRole } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const navigate = useNavigate();
@@ -161,40 +161,70 @@ export const DashboardLayout = () => {
           </div>
 
           <div className="topbar-right">
-            {/* Quick Role Switcher */}
-            <div className="role-switcher-container">
-              <button 
-                className="role-switcher-btn"
-                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              >
-                <span>Cambiar Rol Demo: <strong>{userType}</strong></span>
-                <ChevronDown size={14} />
-              </button>
+            {/* Quick Role Switcher (Solo visible en Modo Demo / Desarrollo) */}
+            {isDemoMode ? (
+              <div className="role-switcher-container">
+                <button 
+                  className="role-switcher-btn"
+                  onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                  title="Herramienta de desarrollo: cambiar rol para previsualizar vistas"
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      color: 'var(--color-primary, #3B82F6)',
+                      padding: '0.15rem 0.4rem',
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
+                    }}>Demo</span>
+                    Vista: <strong>{USER_ROLE_LABELS[userType] || userType}</strong>
+                  </span>
+                  <ChevronDown size={14} />
+                </button>
 
-              {roleDropdownOpen && (
-                <div className="role-dropdown-menu">
-                  <div className="role-dropdown-title">Ver como:</div>
-                  <button 
-                    className={`role-option ${userType === USER_ROLES.COMPANY ? 'active' : ''}`}
-                    onClick={() => handleRoleChange(USER_ROLES.COMPANY)}
-                  >
-                    <Building2 size={16} /> Empresa
-                  </button>
-                  <button 
-                    className={`role-option ${userType === USER_ROLES.SELLER ? 'active' : ''}`}
-                    onClick={() => handleRoleChange(USER_ROLES.SELLER)}
-                  >
-                    <User size={16} /> Comercial
-                  </button>
-                  <button 
-                    className={`role-option ${userType === USER_ROLES.ADMIN ? 'active' : ''}`}
-                    onClick={() => handleRoleChange(USER_ROLES.ADMIN)}
-                  >
-                    <ShieldCheck size={16} /> Administrador
-                  </button>
-                </div>
-              )}
-            </div>
+                {roleDropdownOpen && (
+                  <div className="role-dropdown-menu">
+                    <div className="role-dropdown-title">Previsualizar como:</div>
+                    <button 
+                      className={`role-option ${userType === USER_ROLES.COMPANY ? 'active' : ''}`}
+                      onClick={() => handleRoleChange(USER_ROLES.COMPANY)}
+                    >
+                      <Building2 size={16} /> Empresa
+                    </button>
+                    <button 
+                      className={`role-option ${userType === USER_ROLES.SELLER ? 'active' : ''}`}
+                      onClick={() => handleRoleChange(USER_ROLES.SELLER)}
+                    >
+                      <User size={16} /> Comercial
+                    </button>
+                    <button 
+                      className={`role-option ${userType === USER_ROLES.ADMIN ? 'active' : ''}`}
+                      onClick={() => handleRoleChange(USER_ROLES.ADMIN)}
+                    >
+                      <ShieldCheck size={16} /> Administrador
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.85rem',
+                color: 'var(--text-secondary, #94A3B8)',
+                background: 'rgba(255, 255, 255, 0.04)',
+                padding: '0.4rem 0.8rem',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.08)'
+              }}>
+                <ShieldCheck size={15} color="#10B981" />
+                <span>Sesión verificada: <strong style={{ color: '#F8FAFC' }}>{USER_ROLE_LABELS[userType] || userType}</strong></span>
+              </div>
+            )}
 
             <Link to="/" className="topbar-public-link">
               Ver Web Pública

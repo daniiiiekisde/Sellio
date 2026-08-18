@@ -23,7 +23,18 @@ export const authService = {
 
       if (authError) throw authError;
       const user = authData.user;
+      const session = authData.session;
       if (!user) throw new Error('No se pudo crear el usuario.');
+
+      // Si Supabase requiere confirmación de email y no hay sesión activa aún
+      if (!session) {
+        return {
+          success: true,
+          requiresConfirmation: true,
+          message: 'Registro exitoso. Por favor revisa tu correo electrónico para confirmar tu cuenta.',
+          user: { id: user.id, email, role, isDemo: false, ...profileData }
+        };
+      }
 
       // Crear perfil común en tabla `profiles`
       const { error: profileError } = await supabase.from('profiles').upsert({
@@ -66,7 +77,11 @@ export const authService = {
         });
       }
 
-      return { success: true, user: { id: user.id, email, role, ...profileData } };
+      return { 
+        success: true, 
+        requiresConfirmation: false,
+        user: { id: user.id, email, role, isDemo: false, ...profileData } 
+      };
     }
 
     // Mock fallback para desarrollo local
@@ -75,6 +90,7 @@ export const authService = {
       id: mockId,
       email,
       role,
+      isDemo: true,
       name: role === USER_ROLES.COMPANY 
         ? (profileData.companyName || 'TechNova Soluciones B2B')
         : (profileData.publicAlias || 'Comercial #A482'),
@@ -83,7 +99,7 @@ export const authService = {
       publicAlias: role === USER_ROLES.SELLER ? (profileData.publicAlias || 'Comercial #A482') : null,
       verificationStatus: 'verified'
     };
-    return { success: true, user: newUser };
+    return { success: true, requiresConfirmation: false, user: newUser };
   },
 
   /**
@@ -121,6 +137,7 @@ export const authService = {
         id: user.id,
         email: user.email,
         role: userRole,
+        isDemo: false,
         name: profile?.display_name || extendedProfile.company_name || extendedProfile.public_alias || user.email,
         companyName: extendedProfile.company_name,
         publicAlias: extendedProfile.public_alias,
@@ -136,6 +153,7 @@ export const authService = {
       name: role === USER_ROLES.COMPANY ? 'TechNova Soluciones B2B' : 'Comercial #A482',
       email: email || 'demo@sellio.com',
       role: role || USER_ROLES.COMPANY,
+      isDemo: true,
       companyName: role === USER_ROLES.COMPANY ? 'TechNova SL' : null,
       publicAlias: role === USER_ROLES.SELLER ? 'Comercial #A482' : null,
       verificationStatus: 'verified'
