@@ -1,15 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Inbox, Users, TrendingUp, Plus, ArrowRight, Check, X } from 'lucide-react';
-import Button from '../../../components/Button';
+import { Package, Inbox, Users, TrendingUp, Plus, ArrowRight, Check, X, Sparkles } from 'lucide-react';
+import { Button } from '../../../components/common';
+import { StatsCard, DashboardHeader } from '../../../components/dashboard';
 import './Dashboard.css';
 
 export const CompanyDashboard = () => {
   const stats = [
-    { title: 'Productos Publicados', value: '12', change: '+2 este mes', icon: Package, color: 'primary' },
-    { title: 'Solicitudes Comerciales', value: '7', change: '3 pendientes', icon: Inbox, color: 'warning' },
-    { title: 'Comerciales Activos', value: '4', change: 'En 3 regiones', icon: Users, color: 'success' },
-    { title: 'Expansión de Red', value: '85%', change: '+15% alcance', icon: TrendingUp, color: 'info' }
+    { title: 'Productos en Catálogo', value: '12', change: '+2 este mes', icon: Package, color: 'primary' },
+    { title: 'Oportunidades Activas', value: '5', change: 'En 4 territorios', icon: Sparkles, color: 'violet' },
+    { title: 'Solicitudes Pendientes', value: '7', change: '3 sin revisar', icon: Inbox, color: 'warning' },
+    { title: 'Comerciales Conectados', value: '4', change: 'Red activa', icon: Users, color: 'success' }
   ];
 
   const recentRequests = [
@@ -19,35 +20,28 @@ export const CompanyDashboard = () => {
 
   return (
     <div className="company-dashboard">
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Panel de Empresa</h1>
-          <p className="dash-subtitle">Gestiona tus productos y expande tu red de ventas con comerciales independientes.</p>
-        </div>
-        <div className="dash-cta">
-          <Link to="/company/products">
-            <Button variant="primary" icon={Plus}>Publicar Nuevo Producto</Button>
+      <DashboardHeader
+        title="Panel de Empresa"
+        subtitle="Gestiona tu catálogo, publica oportunidades y expande tu red de ventas con comerciales independientes."
+        action={
+          <Link to="/company/opportunities">
+            <Button variant="primary" icon={Plus}>Publicar Oportunidad</Button>
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="kpi-grid">
-        {stats.map((s, i) => {
-          const Icon = s.icon;
-          return (
-            <div key={i} className="kpi-card">
-              <div className="kpi-top">
-                <span className="kpi-title">{s.title}</span>
-                <div className={`kpi-icon-box kpi-${s.color}`}>
-                  <Icon size={18} />
-                </div>
-              </div>
-              <div className="kpi-value">{s.value}</div>
-              <span className="kpi-change">{s.change}</span>
-            </div>
-          );
-        })}
+        {stats.map((s, i) => (
+          <StatsCard
+            key={i}
+            title={s.title}
+            value={s.value}
+            change={s.change}
+            icon={s.icon}
+            color={s.color}
+          />
+        ))}
       </div>
 
       {/* Recent requests */}
@@ -64,7 +58,7 @@ export const CompanyDashboard = () => {
             <thead>
               <tr>
                 <th>Comercial</th>
-                <th>Producto de Interés</th>
+                <th>Producto / Oportunidad</th>
                 <th>Zona</th>
                 <th>Afinidad</th>
                 <th>Fecha</th>

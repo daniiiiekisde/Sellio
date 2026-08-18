@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, BadgePercent, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
-import Button from '../../../components/Button';
-import ProductCard from '../../../components/ProductCard';
+import { ShoppingBag, Users, BadgePercent, Sparkles, ArrowRight } from 'lucide-react';
+import { Button } from '../../../components/common';
+import { StatsCard, DashboardHeader } from '../../../components/dashboard';
+import { ProductCard } from '../../../components/marketplace';
 import { useProducts } from '../../../hooks/useProducts';
 
 export const SellerDashboard = () => {
@@ -17,33 +18,28 @@ export const SellerDashboard = () => {
 
   return (
     <div className="seller-dashboard-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Panel del Comercial</h1>
-          <p className="dash-subtitle">Bienvenido Carlos. Descubre productos de alta afinidad para tu cartera de clientes.</p>
-        </div>
-        <Link to="/seller/marketplace">
-          <Button variant="primary" icon={ShoppingBag}>Explorar Oportunidades</Button>
-        </Link>
-      </div>
+      <DashboardHeader
+        title="Panel del Comercial"
+        subtitle="Bienvenido Carlos. Descubre oportunidades de alta afinidad para tu cartera de clientes."
+        action={
+          <Link to="/seller/marketplace">
+            <Button variant="primary" icon={ShoppingBag}>Explorar Oportunidades</Button>
+          </Link>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="kpi-grid">
-        {stats.map((s, i) => {
-          const Icon = s.icon;
-          return (
-            <div key={i} className="kpi-card">
-              <div className="kpi-top">
-                <span className="kpi-title">{s.title}</span>
-                <div className={`kpi-icon-box kpi-${s.color}`}>
-                  <Icon size={18} />
-                </div>
-              </div>
-              <div className="kpi-value">{s.value}</div>
-              <span className="kpi-change">{s.change}</span>
-            </div>
-          );
-        })}
+        {stats.map((s, i) => (
+          <StatsCard
+            key={i}
+            title={s.title}
+            value={s.value}
+            change={s.change}
+            icon={s.icon}
+            color={s.color}
+          />
+        ))}
       </div>
 
       {/* High affinity match recommendation */}
@@ -51,7 +47,7 @@ export const SellerDashboard = () => {
         <div className="dash-card-header">
           <div>
             <h3>Oportunidades Recomendadas por Afinidad (Matching B2B)</h3>
-            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: '#94a3b8' }}>
               Basado en tu especialidad (Alimentación & HORECA) y zona de cobertura (Cataluña).
             </p>
           </div>

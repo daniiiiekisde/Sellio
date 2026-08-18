@@ -18,6 +18,7 @@ import {
   X, 
   Layers,
   MessageSquare,
+  Sparkles,
   ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -43,29 +44,30 @@ export const DashboardLayout = () => {
     else if (role === USER_ROLES.ADMIN) navigate('/admin/dashboard');
   };
 
-  // Define role specific navigation items
+  // Define role specific navigation items according to ESTRUCTURA_WEBAPP.md Section 14
   const getNavLinks = () => {
     switch (userType) {
       case USER_ROLES.COMPANY:
         return [
           { to: '/company/dashboard', label: 'Panel General', icon: LayoutDashboard },
-          { to: '/company/products', label: 'Mis Productos', icon: Package },
-          { to: '/company/requests', label: 'Solicitudes Comerciales', icon: Inbox },
-          { to: '/company/orders', label: 'Pedidos y Acuerdos', icon: FileText },
-          { to: '/messages', label: 'Mensajes', icon: MessageSquare },
+          { to: '/company/products', label: 'Catálogo de Productos', icon: Package },
+          { to: '/company/opportunities', label: 'Oportunidades de Expansión', icon: Sparkles },
+          { to: '/company/requests', label: 'Solicitudes Recibidas', icon: Inbox },
+          { to: '/company/contacts', label: 'Red de Comerciales', icon: Users },
+          { to: '/company/messages', label: 'Mensajes', icon: MessageSquare },
           { to: '/company/profile', label: 'Perfil de Empresa', icon: Building2 },
-          { to: '/settings', label: 'Configuración', icon: Settings },
         ];
       case USER_ROLES.SELLER:
         return [
           { to: '/seller/dashboard', label: 'Panel General', icon: LayoutDashboard },
-          { to: '/seller/marketplace', label: 'Explorar Marketplace', icon: ShoppingBag },
+          { to: '/seller/marketplace', label: 'Explorar Oportunidades', icon: ShoppingBag },
           { to: '/seller/companies', label: 'Directorio Empresas', icon: Building2 },
+          { to: '/seller/products', label: 'Mi Cartera de Productos', icon: Package },
+          { to: '/seller/requests', label: 'Candidaturas Enviadas', icon: Inbox },
           { to: '/seller/contacts', label: 'Mis Contactos', icon: Users },
+          { to: '/seller/messages', label: 'Mensajes', icon: MessageSquare },
           { to: '/seller/commissions', label: 'Comisiones', icon: BadgePercent },
-          { to: '/messages', label: 'Mensajes', icon: MessageSquare },
           { to: '/seller/profile', label: 'Mi Perfil Comercial', icon: User },
-          { to: '/settings', label: 'Configuración', icon: Settings },
         ];
       case USER_ROLES.ADMIN:
         return [
@@ -73,7 +75,8 @@ export const DashboardLayout = () => {
           { to: '/admin/users', label: 'Control Usuarios', icon: Users },
           { to: '/admin/companies', label: 'Empresas Registradas', icon: Building2 },
           { to: '/admin/sellers', label: 'Comerciales', icon: User },
-          { to: '/admin/products', label: 'Moderación Productos', icon: Package },
+          { to: '/admin/products', label: 'Moderación Catálogos', icon: Package },
+          { to: '/admin/opportunities', label: 'Moderación Oportunidades', icon: Sparkles },
           { to: '/admin/transactions', label: 'Transacciones y Planes', icon: CreditCard },
           { to: '/admin/settings', label: 'Ajustes de Plataforma', icon: Settings },
         ];

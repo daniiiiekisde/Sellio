@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, Save, CheckCircle2 } from 'lucide-react';
-import Button from '../../../components/Button';
+import { Button } from '../../../components/common';
+import { DashboardHeader } from '../../../components/dashboard';
 import { SECTORS, REGIONS } from '../../../utils/constants';
 
 export const CompanyProfile = () => {
@@ -22,16 +23,14 @@ export const CompanyProfile = () => {
 
   return (
     <div className="company-profile-page" style={{ maxWidth: '800px' }}>
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Perfil de Empresa</h1>
-          <p className="dash-subtitle">Información corporativa visible para los comerciales en la plataforma.</p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Perfil de Empresa"
+        subtitle="Información corporativa visible para los comerciales en la plataforma."
+      />
 
       <div className="dash-card" style={{ marginTop: '1.5rem' }}>
         {saved && (
-          <div className="save-alert" style={{ marginBottom: '1rem' }}>
+          <div className="save-alert" style={{ marginBottom: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
             <CheckCircle2 size={16} /> Perfil empresarial guardado correctamente.
           </div>
         )}

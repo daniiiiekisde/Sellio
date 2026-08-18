@@ -6,44 +6,54 @@ import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 
-// Public & General Pages
-import Home from '../pages/Home';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
-import Products from '../pages/Products';
-import Product from '../pages/Product';
-import Companies from '../pages/Companies';
-import Company from '../pages/Company';
-import Sellers from '../pages/Sellers';
-import Seller from '../pages/Seller';
-import Messages from '../pages/Messages';
-import Profile from '../pages/Profile';
-import Settings from '../pages/Settings';
-import Dashboard from '../pages/Dashboard';
+// Public Pages
+import { Home, Login, Register } from '../pages/public';
+
+// Marketplace Pages
+import {
+  Products,
+  Product,
+  Companies,
+  Company,
+  Sellers,
+  Seller
+} from '../pages/marketplace';
 
 // Role-specific Pages: Company
-import CompanyDashboard from '../pages/company/Dashboard';
-import CompanyProducts from '../pages/company/Products';
-import CompanyRequests from '../pages/company/Requests';
-import CompanyOrders from '../pages/company/Orders';
-import CompanyProfile from '../pages/company/Profile';
+import {
+  CompanyDashboard,
+  CompanyProducts,
+  CompanyOpportunities,
+  CompanyRequests,
+  CompanyContacts,
+  CompanyMessages,
+  CompanyProfile
+} from '../pages/company';
 
 // Role-specific Pages: Seller
-import SellerDashboard from '../pages/seller/Dashboard';
-import SellerMarketplace from '../pages/seller/Marketplace';
-import SellerCompanies from '../pages/seller/Companies';
-import SellerContacts from '../pages/seller/Contacts';
-import SellerCommissions from '../pages/seller/Commissions';
-import SellerProfile from '../pages/seller/Profile';
+import {
+  SellerDashboard,
+  SellerMarketplace,
+  SellerCompanies,
+  SellerProducts,
+  SellerRequests,
+  SellerContacts,
+  SellerMessages,
+  SellerCommissions,
+  SellerProfile
+} from '../pages/seller';
 
 // Role-specific Pages: Admin
-import AdminDashboard from '../pages/admin/Dashboard';
-import AdminUsers from '../pages/admin/Users';
-import AdminCompanies from '../pages/admin/Companies';
-import AdminSellers from '../pages/admin/Sellers';
-import AdminProducts from '../pages/admin/Products';
-import AdminTransactions from '../pages/admin/Transactions';
-import AdminSettings from '../pages/admin/Settings';
+import {
+  AdminDashboard,
+  AdminUsers,
+  AdminCompanies,
+  AdminSellers,
+  AdminProducts,
+  AdminOpportunities,
+  AdminTransactions,
+  AdminSettings
+} from '../pages/admin';
 
 export const AppRoutes = () => {
   return (
@@ -51,16 +61,14 @@ export const AppRoutes = () => {
       {/* Public Pages with PublicLayout (Navbar & Footer) */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
+        
+        {/* Marketplace Explorer */}
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<Product />} />
         <Route path="/companies" element={<Companies />} />
         <Route path="/companies/:id" element={<Company />} />
         <Route path="/sellers" element={<Sellers />} />
         <Route path="/sellers/:id" element={<Seller />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/dashboard" element={<Dashboard />} />
       </Route>
 
       {/* Auth Pages with AuthLayout */}
@@ -74,15 +82,20 @@ export const AppRoutes = () => {
         {/* Company Routes */}
         <Route path="/company/dashboard" element={<CompanyDashboard />} />
         <Route path="/company/products" element={<CompanyProducts />} />
+        <Route path="/company/opportunities" element={<CompanyOpportunities />} />
         <Route path="/company/requests" element={<CompanyRequests />} />
-        <Route path="/company/orders" element={<CompanyOrders />} />
+        <Route path="/company/contacts" element={<CompanyContacts />} />
+        <Route path="/company/messages" element={<CompanyMessages />} />
         <Route path="/company/profile" element={<CompanyProfile />} />
 
         {/* Seller Routes */}
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/marketplace" element={<SellerMarketplace />} />
         <Route path="/seller/companies" element={<SellerCompanies />} />
+        <Route path="/seller/products" element={<SellerProducts />} />
+        <Route path="/seller/requests" element={<SellerRequests />} />
         <Route path="/seller/contacts" element={<SellerContacts />} />
+        <Route path="/seller/messages" element={<SellerMessages />} />
         <Route path="/seller/commissions" element={<SellerCommissions />} />
         <Route path="/seller/profile" element={<SellerProfile />} />
 
@@ -92,6 +105,7 @@ export const AppRoutes = () => {
         <Route path="/admin/companies" element={<AdminCompanies />} />
         <Route path="/admin/sellers" element={<AdminSellers />} />
         <Route path="/admin/products" element={<AdminProducts />} />
+        <Route path="/admin/opportunities" element={<AdminOpportunities />} />
         <Route path="/admin/transactions" element={<AdminTransactions />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
       </Route>

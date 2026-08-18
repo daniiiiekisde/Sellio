@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, Shield, Check, X } from 'lucide-react';
-import Button from '../../../components/Button';
+import { Button } from '../../../components/common';
+import { DashboardHeader } from '../../../components/dashboard';
 
 export const AdminUsers = () => {
   const users = [
@@ -11,12 +12,10 @@ export const AdminUsers = () => {
 
   return (
     <div className="admin-users-page">
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Gestión de Usuarios</h1>
-          <p className="dash-subtitle">Listado y administración de cuentas registradas en Sellio.</p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Gestión de Usuarios"
+        subtitle="Listado y administración de cuentas registradas en Sellio."
+      />
 
       <div className="dash-card" style={{ marginTop: '1.5rem' }}>
         <table className="dash-table">

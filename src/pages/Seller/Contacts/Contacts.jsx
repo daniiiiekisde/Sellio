@@ -1,7 +1,8 @@
 import React from 'react';
 import { Building2, Mail, Phone, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Button from '../../../components/Button';
+import { Button } from '../../../components/common';
+import { DashboardHeader } from '../../../components/dashboard';
 
 export const SellerContacts = () => {
   const contacts = [
@@ -11,12 +12,10 @@ export const SellerContacts = () => {
 
   return (
     <div className="seller-contacts-page">
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Mis Contactos y Empresas</h1>
-          <p className="dash-subtitle">Empresas con las que has establecido contacto o acuerdos de representación.</p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Mis Contactos y Empresas"
+        subtitle="Empresas con las que has establecido contacto o acuerdos de representación."
+      />
 
       <div className="dash-card" style={{ marginTop: '1.5rem' }}>
         <table className="dash-table">
@@ -39,7 +38,7 @@ export const SellerContacts = () => {
                 <td>{c.email}</td>
                 <td><span className="badge badge-primary">{c.status}</span></td>
                 <td>
-                  <Link to="/messages">
+                  <Link to="/seller/messages">
                     <Button variant="outline" size="sm" icon={MessageSquare}>Mensaje</Button>
                   </Link>
                 </td>

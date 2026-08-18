@@ -1,15 +1,14 @@
 import React from 'react';
-import Sellers from '../../Sellers';
+import Sellers from '../../marketplace/Sellers';
+import { DashboardHeader } from '../../../components/dashboard';
 
 export const AdminSellers = () => {
   return (
     <div className="admin-sellers-view">
-      <div className="dash-header" style={{ marginBottom: '1.5rem' }}>
-        <div>
-          <h1 className="dash-title">Comerciales Registrados (Admin)</h1>
-          <p className="dash-subtitle">Verificación de experiencia y carteras de agentes comerciales.</p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Comerciales Registrados (Admin)"
+        subtitle="Verificación de experiencia y carteras de agentes comerciales."
+      />
       <Sellers />
     </div>
   );

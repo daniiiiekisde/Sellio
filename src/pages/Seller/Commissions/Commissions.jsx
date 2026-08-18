@@ -1,6 +1,7 @@
 import React from 'react';
 import { BadgePercent, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
 import { formatCurrency } from '../../../utils/formatters';
+import { DashboardHeader, StatsCard } from '../../../components/dashboard';
 
 export const SellerCommissions = () => {
   const commissions = [
@@ -10,24 +11,26 @@ export const SellerCommissions = () => {
 
   return (
     <div className="seller-commissions-page">
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Control de Comisiones</h1>
-          <p className="dash-subtitle">Histórico y seguimiento de liquidaciones por acuerdos de representación.</p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Control de Comisiones"
+        subtitle="Histórico y seguimiento de liquidaciones por acuerdos de representación comercial."
+      />
 
       <div className="kpi-grid" style={{ marginTop: '1.5rem' }}>
-        <div className="kpi-card">
-          <span className="kpi-title">Comisiones Liquidadas</span>
-          <div className="kpi-value">{formatCurrency(1240.00)}</div>
-          <span className="kpi-change">Últimos 30 días</span>
-        </div>
-        <div className="kpi-card">
-          <span className="kpi-title">Comisiones Pendientes</span>
-          <div className="kpi-value">{formatCurrency(1450.00)}</div>
-          <span className="kpi-change">Próxima liquidación</span>
-        </div>
+        <StatsCard
+          title="Comisiones Liquidadas"
+          value={formatCurrency(1240.00)}
+          change="Últimos 30 días"
+          icon={CheckCircle2}
+          color="success"
+        />
+        <StatsCard
+          title="Comisiones Pendientes"
+          value={formatCurrency(1450.00)}
+          change="Próxima liquidación en 5 días"
+          icon={Clock}
+          color="warning"
+        />
       </div>
 
       <div className="dash-card" style={{ marginTop: '1.5rem' }}>

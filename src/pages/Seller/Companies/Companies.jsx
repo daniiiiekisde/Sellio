@@ -1,5 +1,5 @@
 import React from 'react';
-import Companies from '../../Companies';
+import Companies from '../../marketplace/Companies';
 
 export const SellerCompanies = () => {
   return (

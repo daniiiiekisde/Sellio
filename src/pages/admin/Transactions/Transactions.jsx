@@ -1,6 +1,7 @@
 import React from 'react';
 import { CreditCard, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '../../../utils/formatters';
+import { DashboardHeader } from '../../../components/dashboard';
 
 export const AdminTransactions = () => {
   const transactions = [
@@ -10,12 +11,10 @@ export const AdminTransactions = () => {
 
   return (
     <div className="admin-transactions-page">
-      <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Transacciones y Planes de Suscripción</h1>
-          <p className="dash-subtitle">Monetización del marketplace, cobros de suscripciones y facturación.</p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Transacciones y Planes de Suscripción"
+        subtitle="Monetización del marketplace, cobros de suscripciones y facturación."
+      />
 
       <div className="dash-card" style={{ marginTop: '1.5rem' }}>
         <table className="dash-table">
