@@ -6,17 +6,19 @@ import { SellerCard } from '../../../components/marketplace';
 import './Sellers.css';
 
 export const Sellers = () => {
-  const { sellers } = useSellers();
+  const { sellers, loading, error } = useSellers();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSector, setSelectedSector] = useState('ALL');
   const [selectedRegion, setSelectedRegion] = useState('ALL');
 
-  const filtered = sellers.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.headline.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.bio.toLowerCase().includes(searchTerm.toLowerCase());
+  const filtered = (sellers || []).filter(s => {
+    const nameStr = (s.name || s.alias || s.anonymousId || '').toLowerCase();
+    const headlineStr = (s.headline || '').toLowerCase();
+    const bioStr = (s.bio || '').toLowerCase();
+    const query = searchTerm.toLowerCase();
+    const matchesSearch = nameStr.includes(query) || headlineStr.includes(query) || bioStr.includes(query);
     const matchesSector = selectedSector === 'ALL' || s.sector === selectedSector;
-    const matchesRegion = selectedRegion === 'ALL' || s.region.includes(selectedRegion);
+    const matchesRegion = selectedRegion === 'ALL' || (s.region && s.region.includes(selectedRegion));
     return matchesSearch && matchesSector && matchesRegion;
   });
 
@@ -31,7 +33,7 @@ export const Sellers = () => {
         <SearchBar
           value={searchTerm}
           onChange={setSearchTerm}
-          placeholder="Buscar comerciales por sector o nombre..."
+          placeholder="Buscar comerciales por sector, zona o especialidad..."
           size="lg"
         />
 
@@ -67,6 +69,12 @@ export const Sellers = () => {
           <SellerCard key={seller.id} seller={seller} />
         ))}
       </div>
+
+      {filtered.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
+          <p>No se encontraron comerciales con los filtros seleccionados.</p>
+        </div>
+      )}
     </div>
   );
 };

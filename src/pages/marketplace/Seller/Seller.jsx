@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { User, MapPin, Award, ShieldCheck, ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
+import { MapPin, Award, ShieldCheck, ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
 import { Button, Modal } from '../../../components/common';
 import './Seller.css';
 
@@ -39,7 +39,7 @@ export const Seller = () => {
       <div className="seller-detail-layout">
         <div className="seller-detail-main">
           <div className="seller-header-card">
-            <div className="seller-avatar-large" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8' }}>
+            <div className="seller-avatar-large">
               <ShieldCheck size={40} />
             </div>
             <div className="seller-header-info">
@@ -63,7 +63,7 @@ export const Seller = () => {
             <p className="seller-bio-text">{seller.bio}</p>
 
             <h4 className="subsection-title">Tipo de Clientes que atiende</h4>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: '#cbd5e1', marginBottom: '1.25rem' }}>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
               {seller.clientType}
             </p>
 
@@ -90,7 +90,7 @@ export const Seller = () => {
             </div>
             <h3>Proponer Oportunidad</h3>
             <p>Invita al {seller.anonymousId} a conocer tu catálogo de productos y condiciones de comisión.</p>
-            <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '0.5rem', marginBottom: '1.25rem' }}>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '0.5rem', marginBottom: '1.25rem' }}>
               La identidad privada del comercial se revelará únicamente tras mutuo acuerdo.
             </p>
             <Button variant="primary" fullWidth size="lg" icon={Send} onClick={() => setModalOpen(true)}>

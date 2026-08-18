@@ -3,7 +3,7 @@
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
-  box-shadow: var(--shadow-xl), 0 0 40px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-xl);
   position: relative;
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(226, 78, 43, 0.4), transparent);
 }
 
 .login-header {
@@ -26,13 +26,13 @@
 .login-title {
   font-size: var(--font-size-2xl);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -0.03em;
 }
 
 .login-subtitle {
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-top: var(--space-1);
 }
 
@@ -53,7 +53,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #cbd5e1;
+  color: var(--text-primary);
 }
 
 .label-with-link {
@@ -64,13 +64,13 @@
 
 .forgot-password-link {
   font-size: var(--font-size-xs);
-  color: #818cf8;
+  color: var(--primary);
   font-weight: 600;
   transition: color var(--transition-fast);
 }
 
 .forgot-password-link:hover {
-  color: #a5b4fc;
+  color: var(--primary-hover);
 }
 
 .input-icon-wrapper {
@@ -82,7 +82,7 @@
 .input-icon {
   position: absolute;
   left: var(--space-4);
-  color: #64748b;
+  color: var(--text-muted);
   pointer-events: none;
 }
 
@@ -91,21 +91,21 @@
   padding: 0.8rem var(--space-4) 0.8rem 2.85rem;
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
-  background: rgba(6, 9, 14, 0.6);
-  color: #f8fafc;
+  background: var(--bg-card);
+  color: var(--text-primary);
   font-size: var(--font-size-sm);
   outline: none;
   transition: all var(--transition-fast);
 }
 
 .form-input::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .form-input:focus {
-  border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 0 15px rgba(99, 102, 241, 0.15);
-  background: rgba(15, 23, 42, 0.9);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-sm);
+  background: #ffffff;
 }
 
 .role-selector-pills {
@@ -119,26 +119,28 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  padding: 0.6rem 0.5rem;
+  padding: 0.65rem 0.5rem;
   font-size: var(--font-size-xs);
   font-weight: 600;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-card);
-  background: rgba(255, 255, 255, 0.03);
-  color: #94a3b8;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
   transition: all var(--transition-fast);
 }
 
 .role-pill:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  background: var(--bg-card);
+  border-color: var(--border-card-hover);
+  color: var(--text-primary);
 }
 
 .role-pill.active {
-  background: rgba(99, 102, 241, 0.2);
-  color: #ffffff;
-  border-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: rgba(226, 78, 43, 0.3);
+  box-shadow: 0 0 12px var(--primary-light);
+  font-weight: 700;
 }
 
 .login-footer {
@@ -147,14 +149,14 @@
   border-top: 1px solid var(--border-subtle);
   text-align: center;
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .login-footer a {
-  color: #818cf8;
+  color: var(--primary);
   font-weight: 600;
 }
 
 .login-footer a:hover {
-  color: #a5b4fc;
+  color: var(--primary-hover);
 }

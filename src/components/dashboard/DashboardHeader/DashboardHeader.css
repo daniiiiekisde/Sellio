@@ -20,8 +20,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(226, 78, 43, 0.2);
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-full);
   margin-bottom: 0.25rem;
@@ -30,13 +31,13 @@
 .dash-header-title {
   font-size: var(--font-size-3xl);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -0.03em;
 }
 
 .dash-header-subtitle {
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .dash-header-action {

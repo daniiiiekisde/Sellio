@@ -3,7 +3,7 @@
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
-  box-shadow: var(--shadow-xl), 0 0 40px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-xl);
   position: relative;
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(226, 78, 43, 0.4), transparent);
 }
 
 .register-header {
@@ -26,13 +26,13 @@
 .register-title {
   font-size: var(--font-size-2xl);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -0.03em;
 }
 
 .register-subtitle {
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-top: var(--space-1);
 }
 
@@ -52,34 +52,34 @@
   flex-direction: column;
   gap: var(--space-1);
   transition: all var(--transition-fast);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-subtle);
 }
 
 .register-role-option:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  background: rgba(99, 102, 241, 0.05);
+  border-color: var(--border-card-hover);
+  background: var(--bg-card);
 }
 
 .register-role-option.active {
-  border-color: rgba(99, 102, 241, 0.6);
-  background: rgba(99, 102, 241, 0.15);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 16px var(--primary-light);
 }
 
 .option-icon-box {
-  color: #818cf8;
+  color: var(--primary);
   margin-bottom: 0.25rem;
 }
 
 .option-title {
   font-size: var(--font-size-sm);
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .option-sub {
   font-size: var(--font-size-xs);
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.35;
 }
 
@@ -100,17 +100,16 @@
   padding: 0.8rem var(--space-3);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
-  background: rgba(6, 9, 14, 0.6);
-  color: #f8fafc;
+  background: var(--bg-card);
+  color: var(--text-primary);
   font-size: var(--font-size-sm);
   outline: none;
   transition: all var(--transition-fast);
 }
 
 .form-select:focus {
-  border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  background: rgba(15, 23, 42, 0.9);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .register-footer {
@@ -119,16 +118,16 @@
   border-top: 1px solid var(--border-subtle);
   text-align: center;
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .register-footer a {
-  color: #818cf8;
+  color: var(--primary);
   font-weight: 600;
 }
 
 .register-footer a:hover {
-  color: #a5b4fc;
+  color: var(--primary-hover);
 }
 
 @media (max-width: 600px) {

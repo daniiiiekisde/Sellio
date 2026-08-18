@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
@@ -9,16 +9,32 @@ import './Navbar.css';
 export const Navbar = () => {
   const { user, isAuthenticated, userType, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
   const dashboard = userType === USER_ROLES.COMPANY ? '/company/dashboard' : userType === USER_ROLES.SELLER ? '/seller/dashboard' : '/admin/dashboard';
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const close = () => setOpen(false);
   const handleLogout = () => { logout(); navigate('/'); close(); };
 
+  const navClass = `navbar ${isHome ? (scrolled ? 'navbar-scrolled' : 'navbar-home-top') : 'navbar-standard'}`;
+
   return (
-    <header className={`navbar ${isHome ? 'navbar-home' : ''}`}>
+    <header className={navClass}>
       <div className="navbar-container">
         <Link to="/" className="navbar-brand" onClick={close}>
           <span className="brand-mark">S</span>
@@ -56,7 +72,17 @@ export const Navbar = () => {
           <NavLink to="/companies" className="mobile-nav-link" onClick={close}>Empresas</NavLink>
           <NavLink to="/sellers" className="mobile-nav-link" onClick={close}>Comerciales</NavLink>
           <div className="mobile-drawer-auth">
-            {isAuthenticated ? <><Link to={dashboard} className="mobile-btn" onClick={close}>Mi espacio</Link><button onClick={handleLogout} className="mobile-btn-danger">Salir</button></> : <><Link to="/login" className="mobile-nav-link" onClick={close}>Iniciar sesión</Link><Link to="/register" onClick={close}><Button variant="primary" fullWidth>Entrar en Sellio</Button></Link></>}
+            {isAuthenticated ? (
+              <>
+                <Link to={dashboard} className="mobile-btn" onClick={close}>Mi espacio</Link>
+                <button onClick={handleLogout} className="mobile-btn-danger">Salir</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="mobile-nav-link" onClick={close}>Iniciar sesión</Link>
+                <Link to="/register" onClick={close}><Button variant="primary" fullWidth>Entrar en Sellio</Button></Link>
+              </>
+            )}
           </div>
         </div>
       )}

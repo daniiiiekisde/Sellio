@@ -14,7 +14,7 @@
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   position: relative;
 }
 
@@ -25,7 +25,7 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(226, 78, 43, 0.3), transparent);
 }
 
 .seller-header-card {
@@ -38,9 +38,9 @@
 .seller-avatar-large {
   width: 80px;
   height: 80px;
-  background: rgba(6, 182, 212, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(226, 78, 43, 0.2);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -57,13 +57,13 @@
 .seller-name-row h1 {
   font-size: var(--font-size-2xl);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .seller-headline-text {
   font-size: var(--font-size-md);
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   margin: var(--space-1) 0 var(--space-2) 0;
 }
 
@@ -71,7 +71,7 @@
   display: flex;
   gap: var(--space-4);
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .seller-meta-row span {
@@ -82,7 +82,7 @@
 
 .seller-bio-text {
   font-size: var(--font-size-md);
-  color: #cbd5e1;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: var(--space-6);
 }
@@ -95,13 +95,13 @@
 }
 
 .skill-pill {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-subtle);
   padding: 0.35rem 0.8rem;
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: 600;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-card);
 }
 
 .brands-list {
@@ -115,7 +115,7 @@
   align-items: center;
   gap: var(--space-2);
   font-size: var(--font-size-sm);
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .brands-list svg {
@@ -133,12 +133,12 @@
 .contact-seller-card h3 {
   font-size: var(--font-size-xl);
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .contact-seller-card p {
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 

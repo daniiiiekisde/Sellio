@@ -3,7 +3,7 @@
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   transition: all var(--transition-normal);
@@ -18,13 +18,19 @@
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(226, 78, 43, 0.3), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
 }
 
 .company-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-xl), 0 0 25px rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: var(--shadow-lg), 0 0 25px var(--primary-light);
+  border-color: var(--border-card-hover);
+}
+
+.company-card:hover::before {
+  opacity: 1;
 }
 
 .company-card-header {
@@ -37,9 +43,9 @@
 .company-icon-box {
   width: 48px;
   height: 48px;
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(226, 78, 43, 0.2);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
@@ -53,7 +59,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .company-name a {
@@ -62,22 +68,22 @@
 }
 
 .company-name a:hover {
-  color: #818cf8;
+  color: var(--primary);
 }
 
 .verified-badge {
-  color: #818cf8;
+  color: var(--primary);
 }
 
 .company-sector {
   font-size: var(--font-size-xs);
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
 .company-desc {
   font-size: var(--font-size-sm);
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.55;
   margin-bottom: var(--space-5);
   flex: 1;
@@ -88,9 +94,9 @@
   flex-wrap: wrap;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
-  background: rgba(6, 9, 14, 0.5);
+  background: var(--bg-subtle);
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
   margin-bottom: var(--space-5);
 }
 
@@ -99,12 +105,12 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--font-size-xs);
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .c-stat svg {
-  color: #818cf8;
+  color: var(--primary);
 }
 
 .company-card-footer {
@@ -116,8 +122,9 @@
 .company-commission-note {
   font-size: var(--font-size-xs);
   font-weight: 700;
-  color: #818cf8;
-  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  background: var(--primary-light);
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-sm);
+  border: 1px solid rgba(226, 78, 43, 0.2);
 }

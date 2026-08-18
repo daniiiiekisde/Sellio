@@ -56,14 +56,14 @@ export const SellerCard = ({ seller }) => {
       <p className="seller-bio">{bio}</p>
 
       {specialization && (
-        <div style={{ fontSize: 'var(--font-size-xs)', color: '#94a3b8', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Target size={12} color="#38bdf8" /> <strong>Especialidad:</strong> {specialization}
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Target size={12} color="var(--primary)" /> <strong>Especialidad:</strong> {specialization}
         </div>
       )}
 
       {clientType && (
-        <div style={{ fontSize: 'var(--font-size-xs)', color: '#94a3b8', marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-          <Briefcase size={12} color="#38bdf8" style={{ marginTop: '2px', flexShrink: 0 }} />
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+          <Briefcase size={12} color="var(--primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
           <span><strong>Clientes tipo:</strong> {clientType}</span>
         </div>
       )}
@@ -74,7 +74,7 @@ export const SellerCard = ({ seller }) => {
         {languages && (
           <span className="s-stat"><Globe size={13} /> {languages.join(' / ')}</span>
         )}
-        {rating && <span className="s-stat"><Star size={13} style={{ color: '#f59e0b' }} /> {rating}</span>}
+        {rating && <span className="s-stat"><Star size={13} style={{ color: 'var(--warning)' }} /> {rating}</span>}
       </div>
 
       <div className="seller-card-footer">
