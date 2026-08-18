@@ -1,287 +1,136 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Building2, 
-  Briefcase, 
-  ArrowRight, 
-  ShieldCheck, 
-  TrendingUp, 
-  Target, 
-  Sparkles,
-  Search,
-  CheckCircle2,
-  Zap,
-  Layers,
-  ArrowUpRight
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Building2, EyeOff, Search, ShieldCheck, Sparkles, Target, Users } from 'lucide-react';
 import { Button } from '../../../components/common';
-import { ProductCard } from '../../../components/marketplace';
-import { useProducts } from '../../../hooks/useProducts';
 import { SECTORS } from '../../../utils/constants';
 import './Home.css';
 
+const steps = [
+  { number: '01', title: 'Una empresa publica', text: 'Producto real, territorio, sector y condiciones comerciales claras.' },
+  { number: '02', title: 'Un comercial descubre', text: 'Explora oportunidades que encajan con su experiencia y zona.' },
+  { number: '03', title: 'Se acerca a la empresa', text: 'Muestra interés sin tener que exponer su identidad desde el principio.' },
+  { number: '04', title: 'Ambos deciden', text: 'Contacto, negociación y acuerdo comercial directo.' },
+];
+
 export const Home = () => {
-  const { products } = useProducts();
-  const [heroSearch, setHeroSearch] = useState('');
+  const [query, setQuery] = useState('');
   const navigate = useNavigate();
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (heroSearch.trim()) {
-      navigate(`/products?q=${encodeURIComponent(heroSearch.trim())}`);
-    } else {
-      navigate('/products');
-    }
+  const submitSearch = (event) => {
+    event.preventDefault();
+    navigate(query.trim() ? `/products?q=${encodeURIComponent(query.trim())}` : '/products');
   };
 
   return (
-    <div className="home-page bg-grid-ambient">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="ambient-spotlight-top"></div>
-        <div className="ambient-spotlight-left"></div>
-        <div className="ambient-spotlight-right"></div>
+    <div className="home-page">
+      <section className="home-hero">
+        <div className="hero-noise" aria-hidden="true" />
+        <div className="hero-orbit hero-orbit-one" aria-hidden="true" />
+        <div className="hero-orbit hero-orbit-two" aria-hidden="true" />
+        <div className="container hero-inner">
+          <div className="eyebrow"><span className="eyebrow-dot" /> El marketplace comercial B2B</div>
+          <h1 className="hero-title">Los productos tienen que llegar <em>a quien sabe venderlos.</em></h1>
+          <p className="hero-lead">Sellio conecta empresas con comerciales independientes. La empresa publica la oportunidad. El comercial la descubre y va a por la venta.</p>
 
-        <div className="container hero-container">
-          {/* 21st.dev Floating Announcement Pill */}
-          <div className="hero-pill-badge">
-            <span className="live-dot"></span>
-            <span className="hero-pill-text">Marketplace B2B de Fuerza de Ventas y Fabricantes</span>
-            <Sparkles size={13} className="hero-pill-sparkle" />
+          <div className="hero-actions">
+            <Link to="/products"><Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">Explorar oportunidades</Button></Link>
+            <Link to="/register"><Button variant="outline" size="lg">Entrar en Sellio</Button></Link>
           </div>
 
-          {/* Headline */}
-          <h1 className="hero-title">
-            Conectamos <span className="hero-highlight-gradient">Empresas</span> con <span className="hero-highlight-cyan">Comerciales</span> Independientes
-          </h1>
-
-          <p className="hero-subtitle">
-            Las empresas publican sus productos y condiciones para expandir nuevos territorios. Los comerciales independientes seleccionan marcas líderes para distribuir con total transparencia.
-          </p>
-
-          {/* Quick Hero Search Input */}
-          <form onSubmit={handleSearchSubmit} className="hero-search-box">
-            <Search size={18} className="hero-search-icon" />
-            <input 
-              type="text" 
-              placeholder="Buscar por producto, sector, fabricante o zona (ej. Cosmética, Madrid, Alimentación)..." 
-              value={heroSearch}
-              onChange={(e) => setHeroSearch(e.target.value)}
-              className="hero-search-input"
-            />
-            <Button type="submit" variant="primary" size="md">
-              Buscar
-            </Button>
+          <form className="hero-search" onSubmit={submitSearch}>
+            <Search size={19} aria-hidden="true" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca un producto, sector o territorio" aria-label="Buscar oportunidades" />
+            <button type="submit">Buscar <ArrowUpRight size={16} /></button>
           </form>
 
-          {/* CTA Buttons */}
-          <div className="hero-cta-group">
-            <Link to="/register">
-              <Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">
-                Empezar gratis ahora
-              </Button>
-            </Link>
-            <Link to="/products">
-              <Button variant="outline" size="lg" icon={Zap}>
-                Explorar oportunidades
-              </Button>
-            </Link>
-          </div>
+          <div className="hero-note"><ShieldCheck size={15} /> Los comerciales pueden descubrir oportunidades con identidad pública protegida.</div>
+        </div>
+      </section>
 
-          {/* 21st.dev Bento Metric Stat Pills */}
-          <div className="hero-stats-bento">
-            <div className="stat-bento-card">
-              <div className="stat-bento-header">
-                <Building2 size={16} className="stat-icon-indigo" />
-                <span className="stat-badge-pulse">+120 Activas</span>
-              </div>
-              <span className="stat-bento-number">+120</span>
-              <span className="stat-bento-label">Empresas y Fabricantes</span>
-            </div>
-
-            <div className="stat-bento-card">
-              <div className="stat-bento-header">
-                <Briefcase size={16} className="stat-icon-cyan" />
-                <span className="stat-badge-pulse stat-badge-cyan">Verificados</span>
-              </div>
-              <span className="stat-bento-number">+450</span>
-              <span className="stat-bento-label">Comerciales con Cartera</span>
-            </div>
-
-            <div className="stat-bento-card">
-              <div className="stat-bento-header">
-                <TrendingUp size={16} className="stat-icon-violet" />
-                <span className="stat-badge-pulse stat-badge-violet">IA Match</span>
-              </div>
-              <span className="stat-bento-number">94%</span>
-              <span className="stat-bento-label">Afinidad Media de Contacto</span>
-            </div>
+      <section className="manifesto-section">
+        <div className="container manifesto-grid">
+          <div className="manifesto-kicker">01 / EL CAMBIO</div>
+          <div>
+            <h2>La empresa tiene el producto.<br /><span>El comercial tiene el mercado.</span></h2>
+            <p>No queremos otro portal de empleo. No queremos que una empresa persiga perfiles. Sellio crea un espacio donde una empresa con algo real que vender publica una oportunidad y los profesionales independientes que encajan van hacia ella.</p>
           </div>
         </div>
       </section>
 
-      {/* Two Pillars Bento Grid (For Companies vs For Sellers) */}
-      <section className="pillars-section">
+      <section className="flow-section">
         <div className="container">
-          <div className="section-header text-center">
-            <div className="badge badge-secondary" style={{ marginBottom: '1rem' }}>
-              <Layers size={14} /> Arquitectura B2B Dual
-            </div>
-            <h2 className="section-title">Una solución diseñada para ambas partes</h2>
-            <p className="section-desc">Sin intermediarios burocráticos, con contratos claros y comisiones pactadas.</p>
+          <div className="section-intro">
+            <span>02 / CÓMO FUNCIONA</span>
+            <h2>Una dirección.<br /><em>La oportunidad → el comercial.</em></h2>
           </div>
-
-          <div className="pillars-bento-grid">
-            {/* Pillar: Para Empresas */}
-            <div className="pillar-bento-card pillar-company">
-              <div className="pillar-top-glow"></div>
-              <div className="pillar-badge-header">
-                <div className="pillar-icon-wrapper">
-                  <Building2 size={24} />
-                </div>
-                <span className="badge badge-primary">Para Fabricantes y Empresas</span>
-              </div>
-
-              <h3 className="pillar-title">“Encuentra comerciales que vendan tus productos”</h3>
-              <p className="pillar-desc">
-                Publica tu catálogo, define tu territorio de expansión y recibe solicitudes directas de comerciales especializados en tu sector.
-              </p>
-
-              <ul className="pillar-benefits">
-                <li>
-                  <div className="benefit-icon-circle"><CheckCircle2 size={15} /></div>
-                  <span>Abre nuevos canales territoriales sin coste fijo inicial</span>
-                </li>
-                <li>
-                  <div className="benefit-icon-circle"><CheckCircle2 size={15} /></div>
-                  <span>Filtra comerciales por cartera de clientes activa y sector</span>
-                </li>
-                <li>
-                  <div className="benefit-icon-circle"><CheckCircle2 size={15} /></div>
-                  <span>Contacto directo y negociación de comisiones flexible</span>
-                </li>
-              </ul>
-
-              <div className="pillar-action">
-                <Link to="/register">
-                  <Button variant="secondary" fullWidth size="lg">
-                    Publicar mis productos
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Pillar: Para Comerciales */}
-            <div className="pillar-bento-card pillar-seller">
-              <div className="pillar-top-glow"></div>
-              <div className="pillar-badge-header">
-                <div className="pillar-icon-wrapper pillar-icon-seller">
-                  <Briefcase size={24} />
-                </div>
-                <span className="badge badge-info">Para Comerciales y Agentes</span>
-              </div>
-
-              <h3 className="pillar-title">“Encuentra marcas y productos para representar”</h3>
-              <p className="pillar-desc">
-                Accede a un marketplace de fabricantes contrastados que buscan profesionales como tú para distribuir en tu zona de influencia.
-              </p>
-
-              <ul className="pillar-benefits">
-                <li>
-                  <div className="benefit-icon-circle benefit-icon-cyan"><CheckCircle2 size={15} /></div>
-                  <span>Catálogos con condiciones y comisiones 100% transparentes</span>
-                </li>
-                <li>
-                  <div className="benefit-icon-circle benefit-icon-cyan"><CheckCircle2 size={15} /></div>
-                  <span>Oportunidades directas sin intermediarios opacos</span>
-                </li>
-                <li>
-                  <div className="benefit-icon-circle benefit-icon-cyan"><CheckCircle2 size={15} /></div>
-                  <span>Sistema de matching que valora tu especialización real</span>
-                </li>
-              </ul>
-
-              <div className="pillar-action">
-                <Link to="/register">
-                  <Button variant="primary" fullWidth size="lg">
-                    Buscar oportunidades
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products / Opportunities preview */}
-      <section className="featured-section">
-        <div className="container">
-          <div className="featured-header">
-            <div>
-              <span className="badge badge-primary">Marketplace en tiempo real</span>
-              <h2 className="section-title" style={{ marginTop: '0.5rem' }}>Últimas Oportunidades Publicadas</h2>
-            </div>
-            <Link to="/products">
-              <Button variant="outline" size="sm" icon={ArrowRight} iconPosition="right">
-                Ver todas las oportunidades
-              </Button>
-            </Link>
-          </div>
-
-          <div className="products-grid">
-            {products.slice(0, 3).map(product => (
-              <ProductCard key={product.id} product={product} />
+          <div className="flow-grid">
+            {steps.map((step) => (
+              <article className="flow-card" key={step.number}>
+                <span className="flow-number">{step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Sectors list */}
+      <section className="privacy-section">
+        <div className="container privacy-grid">
+          <div className="privacy-copy">
+            <span className="section-label">03 / PRIVACIDAD</span>
+            <h2>Ser anónimo no significa ser invisible.</h2>
+            <p>Un comercial puede enseñar su experiencia, sectores y zonas sin revelar automáticamente su nombre, teléfono o email. Sellio puede verificar su identidad internamente cuando sea necesario.</p>
+            <Link to="/register" className="text-link">Crear perfil comercial <ArrowRight size={16} /></Link>
+          </div>
+          <div className="anonymous-card">
+            <div className="anonymous-top"><span>PERFIL PROFESIONAL</span><EyeOff size={18} /></div>
+            <div className="anonymous-avatar"><Users size={25} /></div>
+            <span className="anonymous-id">COMERCIAL #A482</span>
+            <h3>Especialista en Horeca</h3>
+            <div className="anonymous-tags"><span>Cataluña</span><span>+5 años</span><span>Alimentación</span><span>ES · CA · EN</span></div>
+            <div className="anonymous-status"><span /> Identidad protegida</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="split-section">
+        <div className="container split-grid">
+          <article className="split-panel company-panel">
+            <div className="panel-index">PARA EMPRESAS</div>
+            <Building2 size={30} />
+            <h2>Publica lo que tienes.<br />Encuentra quién lo puede vender.</h2>
+            <p>Producto real. Territorio. Sector. Condiciones. La oportunidad queda clara desde el primer vistazo.</p>
+            <Link to="/register"><Button variant="outline">Publicar una oportunidad</Button></Link>
+          </article>
+          <article className="split-panel seller-panel">
+            <div className="panel-index">PARA COMERCIALES</div>
+            <BriefcaseBusiness size={30} />
+            <h2>Encuentra algo que merezca<br />la pena vender.</h2>
+            <p>Descubre marcas y productos. Mantén tu identidad protegida. Decide tú cuándo acercarte a la empresa.</p>
+            <Link to="/products"><Button variant="primary" icon={ArrowRight} iconPosition="right">Explorar oportunidades</Button></Link>
+          </article>
+        </div>
+      </section>
+
       <section className="sectors-section">
         <div className="container">
-          <div className="section-header text-center">
-            <h2 className="section-title">Sectores con Mayor Demanda</h2>
-            <p className="section-desc">Encuentra o publica oportunidades comerciales segmentadas por industria.</p>
-          </div>
-
-          <div className="sectors-pills-wrap">
-            {SECTORS.map((sector, i) => (
-              <Link to={`/products?sector=${encodeURIComponent(sector)}`} key={i} className="sector-tag">
-                <Target size={14} className="sector-icon" />
-                <span>{sector}</span>
-                <ArrowUpRight size={12} className="sector-arrow" />
+          <div className="section-intro sectors-intro"><span>04 / EXPLORA</span><h2>Encuentra tu próximo<br /><em>mercado.</em></h2></div>
+          <div className="sector-grid">
+            {SECTORS.slice(0, 8).map((sector, index) => (
+              <Link className="sector-link" to={`/products?sector=${encodeURIComponent(sector)}`} key={sector}>
+                <span>0{index + 1}</span><strong>{sector}</strong><ArrowUpRight size={18} />
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA Banner */}
-      <section className="cta-banner-section">
-        <div className="container">
-          <div className="cta-banner-bento">
-            <div className="cta-glow-backdrop"></div>
-            
-            <div className="cta-content">
-              <div className="badge badge-primary" style={{ marginBottom: '1.25rem' }}>
-                <Sparkles size={13} /> Alta Velocidad de Conexión
-              </div>
-              <h2 className="cta-title">¿Listo para impulsar tu crecimiento comercial?</h2>
-              <p className="cta-desc">
-                Únete hoy a la plataforma B2B que está conectando empresas fabricantes con los comerciales más activos de cada territorio.
-              </p>
-              <div className="cta-buttons">
-                <Link to="/register">
-                  <Button variant="primary" size="lg">Crear Cuenta Gratis</Button>
-                </Link>
-                <Link to="/companies">
-                  <Button variant="outline" size="lg">
-                    Ver Empresas Registradas
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
+      <section className="final-cta-section">
+        <div className="container final-cta">
+          <Sparkles size={18} />
+          <h2>Una empresa.<br /><em>Una oportunidad.</em><br />Un comercial que la hace crecer.</h2>
+          <div><Link to="/register"><Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">Entrar en Sellio</Button></Link></div>
         </div>
       </section>
     </div>
