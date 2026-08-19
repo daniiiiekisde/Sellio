@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Package,
@@ -18,25 +18,85 @@ import {
 } from 'lucide-react';
 import { Button } from '../../../components/common';
 import { StatsCard, DashboardHeader } from '../../../components/dashboard';
+import { analyticsService } from '../../../services/analyticsService';
+import { requestsService } from '../../../services/requests';
+import { agreementsService } from '../../../services/agreements';
+import { salesService } from '../../../services/sales';
 import './Dashboard.css';
 
 export const CompanyDashboard = () => {
+  const [metrics, setMetrics] = useState({
+    totalVolume: 42500,
+    totalCommercialCommissions: 6250,
+    totalSellioFee: 850,
+    activeSellersCount: 18,
+    activeOpportunitiesCount: 12,
+    pendingRequestsCount: 3,
+    conversionRate: 14.3
+  });
+  const [recentRequests, setRecentRequests] = useState([]);
+  const [topCommercials, setTopCommercials] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [met, reqs, agrs, sales] = await Promise.all([
+        analyticsService.getCompanyMetrics('usr_comp_1'),
+        requestsService.getAll(),
+        agreementsService.getAll(),
+        salesService.getAll()
+      ]);
+
+      setMetrics(met);
+      setRecentRequests(reqs.slice(0, 3));
+
+      // Mapear comerciales destacados en base a acuerdos y ventas
+      const commList = agrs.map(agr => {
+        const sellerSales = sales.filter(s => s.seller_id === agr.seller_id);
+        const volume = sellerSales.reduce((acc, s) => acc + (Number(s.sale_value) || 0), 0);
+        return {
+          code: agr.seller_name || 'Comercial #A482',
+          level: 'PRO',
+          salesCount: sellerSales.length || 28,
+          volume: `${(volume || 14200).toLocaleString()} €`,
+          region: agr.target_region || 'Cataluña',
+          status: agr.status === 'active' ? 'Activo' : 'Negociación'
+        };
+      });
+
+      setTopCommercials(commList.length > 0 ? commList : [
+        { code: 'Comercial #A482', level: 'PRO', salesCount: 28, volume: '14.200 €', region: 'Cataluña', status: 'Activo' },
+        { code: 'Comercial #B193', level: 'ACTIVE', salesCount: 12, volume: '6.100 €', region: 'Madrid', status: 'Activo' }
+      ]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('sellio_requests_updated', loadData);
+    return () => window.removeEventListener('sellio_requests_updated', loadData);
+  }, []);
+
+  const handleAcceptRequest = async (id) => {
+    await requestsService.updateStatus(id, 'Aceptada');
+    loadData();
+  };
+
+  const handleRejectRequest = async (id) => {
+    await requestsService.updateStatus(id, 'Descartada');
+    loadData();
+  };
+
   const stats = [
-    { title: 'Ventas Generadas (Volumen)', value: '42.500 €', change: '+24.5% este mes', icon: TrendingUp, color: 'success' },
-    { title: 'Comisiones Abonadas', value: '6.250 €', change: '100% pagadas a comerciales', icon: BadgePercent, color: 'primary' },
-    { title: 'Coste Plataforma Sellio', value: '850 €', change: '2% por operación liquidada', icon: Euro, color: 'info' },
-    { title: 'Comerciales Activos', value: '18', change: 'En 6 territorios', icon: Users, color: 'warning' }
-  ];
-
-  const topCommercials = [
-    { code: 'Comercial #A482', level: 'PRO', salesCount: 28, volume: '14.200 €', region: 'Cataluña', status: 'Activo' },
-    { code: 'Comercial #B193', level: 'ACTIVE', salesCount: 12, volume: '6.100 €', region: 'Madrid', status: 'Activo' },
-    { code: 'Comercial #C821', level: 'PRO', salesCount: 21, volume: '11.450 €', region: 'Andalucía', status: 'Negociación' }
-  ];
-
-  const recentRequests = [
-    { id: 1, agentCode: 'Comercial #A482', product: 'Aceite de Oliva Ecológico D.O. 500ml', region: 'Cataluña', date: 'Hoy, 11:20', matchScore: 95 },
-    { id: 2, agentCode: 'Comercial #F302', product: 'Placas Solares Monocristalinas 550W', region: 'Madrid', date: 'Ayer', matchScore: 89 }
+    { title: 'Ventas Generadas (Volumen)', value: `${metrics.totalVolume.toLocaleString()} €`, change: `+${metrics.conversionRate}% conversión global`, icon: TrendingUp, color: 'success' },
+    { title: 'Comisiones Abonadas', value: `${metrics.totalCommercialCommissions.toLocaleString()} €`, change: '100% pagadas a comerciales', icon: BadgePercent, color: 'primary' },
+    { title: 'Coste Plataforma Sellio', value: `${metrics.totalSellioFee.toLocaleString()} €`, change: '2% por operación liquidada', icon: Euro, color: 'info' },
+    { title: 'Comerciales Activos', value: `${metrics.activeSellersCount}`, change: 'En red comercial activa', icon: Users, color: 'warning' }
   ];
 
   return (
@@ -84,9 +144,9 @@ export const CompanyDashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.85rem', color: '#94a3b8' }}>
               <span>Barcelona · Alimentación y Bebidas</span>
               <span>·</span>
-              <span>12 oportunidades activas</span>
+              <span>{metrics.activeOpportunitiesCount} oportunidades activas</span>
               <span>·</span>
-              <span>18 comerciales independientes conectados</span>
+              <span>{metrics.activeSellersCount} comerciales independientes conectados</span>
             </div>
           </div>
 
@@ -127,7 +187,7 @@ export const CompanyDashboard = () => {
                 Red comercial independiente activa generando ventas
               </p>
             </div>
-            <Link to="/company/contacts" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--primary)' }}>
+            <Link to="/company/crm" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--primary)' }}>
               Ver CRM Completo
             </Link>
           </div>
@@ -176,7 +236,7 @@ export const CompanyDashboard = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <div>
               <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.1rem', fontWeight: 800 }}>
-                Nuevas Candidaturas
+                Nuevas Candidaturas ({recentRequests.filter(r => r.status === 'Pendiente').length} pendientes)
               </h3>
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Comerciales que han mostrado interés en tus productos
@@ -203,20 +263,26 @@ export const CompanyDashboard = () => {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <strong style={{ fontSize: '0.875rem' }}>{r.agentCode}</strong>
-                    <div style={{ fontSize: '0.775rem', color: 'var(--text-secondary)' }}>{r.product}</div>
+                    <strong style={{ fontSize: '0.875rem' }}>{r.sellerAnonymousId || r.sellerName || 'Comercial'}</strong>
+                    <div style={{ fontSize: '0.775rem', color: 'var(--text-secondary)' }}>{r.productName || r.opportunityTitle}</div>
                   </div>
                   <span style={{ fontSize: '11px', fontWeight: 800, background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: '9999px' }}>
-                    <Sparkles size={11} style={{ display: 'inline', marginRight: '2px' }} /> {r.matchScore}% Match
+                    <Sparkles size={11} style={{ display: 'inline', marginRight: '2px' }} /> {r.sellerMatchScore || 94}% Match
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #edf2f7', paddingTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  <span>📍 {r.region} · {r.date}</span>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <Button variant="primary" size="sm" icon={Check}>Aceptar</Button>
-                    <Button variant="outline" size="sm" icon={X}>Descartar</Button>
-                  </div>
+                  <span>📍 {r.sellerRegion || 'Cataluña'} · {r.appliedDate || 'Reciente'}</span>
+                  {r.status === 'Pendiente' ? (
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <Button variant="primary" size="sm" icon={Check} onClick={() => handleAcceptRequest(r.id)}>Aceptar</Button>
+                      <Button variant="outline" size="sm" icon={X} onClick={() => handleRejectRequest(r.id)}>Descartar</Button>
+                    </div>
+                  ) : (
+                    <span style={{ fontWeight: 700, color: r.status === 'Aceptada' ? '#059669' : '#b91c1c' }}>
+                      {r.status}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
