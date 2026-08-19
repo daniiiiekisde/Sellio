@@ -12,3 +12,7 @@ export * from './OpportunityFilters';
 
 export { default as OpportunityCompare } from './OpportunityCompare';
 export * from './OpportunityCompare';
+
+export { default as OpportunityDetailModal } from './OpportunityDetailModal';
+export * from './OpportunityDetailModal';
+

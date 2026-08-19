@@ -165,3 +165,106 @@
 .compare-table tr:hover td {
   background: #f8fafc;
 }
+
+/* Sellio Match Styles */
+.sellio-match-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.sellio-match-tag.top-match {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #047857;
+  border-color: #6ee7b7;
+}
+
+.sellio-match-tooltip {
+  font-size: 0.775rem;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Sellio Potential Mini-Widget */
+.sellio-potential-widget {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.potential-preset-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.potential-preset-btn:hover,
+.potential-preset-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+/* List View for Opportunities */
+.opportunity-list-card {
+  background: #ffffff;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  transition: all var(--transition-fast);
+}
+
+.opportunity-list-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+/* Smart Saved Heart Button */
+.save-heart-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  color: #94a3b8;
+  transition: all var(--transition-fast);
+}
+
+.save-heart-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.save-heart-btn.is-saved {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
