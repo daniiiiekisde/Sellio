@@ -1,11 +1,14 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
-import { calculateCommissions, DEFAULT_VOLUME_TIERS } from '../utils/commissionCalculator';
+import { calculateCommissions, DEFAULT_VOLUME_TIERS, SELLIO_MAX_COMMISSION_RATE } from '../utils/commissionCalculator';
+import { COMMISSION_STATUS } from '../utils/constants';
+import { validateStateTransition } from '../utils/stateTransitions';
 
-// Histórico de transacciones/liquidaciones de comisiones (Mock Store)
+// Store local de transacciones de comisiones para modo offline / demo
 let localCommissionTransactions = [
   {
     id: 'tx_comm_101',
     deal_id: 'deal_201',
+    sale_id: 'sale_101',
     product_id: 'prod_1',
     product_name: 'Aceite de Oliva Virgen Extra Ecológico D.O. 500ml',
     company_id: 'usr_comp_1',
@@ -20,7 +23,7 @@ let localCommissionTransactions = [
     sellio_rate: 2.0,
     sellio_amount: 248.00,
     company_net: 10292.00,
-    status: 'commission_paid', // 'lead' | 'interested' | 'contacted' | 'agreement' | 'sale_confirmed' | 'commission_pending' | 'commission_paid'
+    status: COMMISSION_STATUS.PAID,
     payment_trigger: 'paid_sale',
     payment_period: '30 días fin de mes',
     created_at: '2026-01-25T10:30:00Z',
@@ -29,6 +32,7 @@ let localCommissionTransactions = [
   {
     id: 'tx_comm_102',
     deal_id: 'deal_202',
+    sale_id: 'sale_102',
     product_id: 'prod_2',
     product_name: 'Placas Solares Monocristalinas de Alta Eficiencia 550W',
     company_id: 'usr_comp_2',
@@ -43,7 +47,7 @@ let localCommissionTransactions = [
     sellio_rate: 2.0,
     sellio_amount: 290.00,
     company_net: 12760.00,
-    status: 'commission_pending',
+    status: COMMISSION_STATUS.PENDING,
     payment_trigger: 'confirmed_sale',
     payment_period: '15 días tras confirmación',
     created_at: '2026-02-08T14:15:00Z',
@@ -52,6 +56,7 @@ let localCommissionTransactions = [
   {
     id: 'tx_comm_103',
     deal_id: 'deal_203',
+    sale_id: 'sale_103',
     product_id: 'prod_3',
     product_name: 'Sérum Rejuvenecedor con Ácido Hialurónico Puro',
     company_id: 'usr_comp_3',
@@ -66,7 +71,7 @@ let localCommissionTransactions = [
     sellio_rate: 2.5,
     sellio_amount: 140.00,
     company_net: 4228.00,
-    status: 'commission_paid',
+    status: COMMISSION_STATUS.PAID,
     payment_trigger: 'paid_sale',
     payment_period: 'Inmediato a liquidación',
     created_at: '2026-02-12T09:00:00Z',
@@ -102,7 +107,7 @@ export const commissionService = {
   },
 
   /**
-   * Obtiene resumen de comisiones para el Comercial/Promotor
+   * Obtiene resumen de comisiones para el Comercial
    */
   getSellerSummary: async (sellerId) => {
     if (isSupabaseConfigured() && supabase) {
@@ -128,6 +133,75 @@ export const commissionService = {
   },
 
   /**
+   * Obtiene todas las transacciones de comisiones (Vista Admin / Ledger)
+   */
+  getLedgerEntries: async (filters = {}) => {
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        let query = supabase.from('commission_transactions').select(`
+          *,
+          sales(*),
+          company_profiles(company_name),
+          seller_profiles(first_name, last_name, handle)
+        `);
+        if (filters.status) query = query.eq('status', filters.status);
+        if (filters.company_id) query = query.eq('company_id', filters.company_id);
+        if (filters.seller_id) query = query.eq('seller_id', filters.seller_id);
+        const { data, error } = await query;
+        if (!error && data) return data;
+      } catch (err) {
+        console.warn('Supabase fallback to local ledger:', err);
+      }
+    }
+
+    let result = [...localCommissionTransactions];
+    if (filters.status) result = result.filter(t => t.status === filters.status);
+    if (filters.company_id) result = result.filter(t => t.company_id === filters.company_id);
+    if (filters.seller_id) result = result.filter(t => t.seller_id === filters.seller_id);
+    return result;
+  },
+
+  /**
+   * Actualiza el estado de una comisión aplicando validación estricta de máquina de estados
+   */
+  updateStatus: async (id, targetStatus) => {
+    const existing = localCommissionTransactions.find(t => t.id === id);
+    const currentStatus = existing?.status || COMMISSION_STATUS.PENDING;
+
+    const transitionCheck = validateStateTransition('commission', currentStatus, targetStatus);
+    if (!transitionCheck.isValid) {
+      throw new Error(transitionCheck.error);
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      const { data, error } = await supabase
+        .from('commission_transactions')
+        .update({
+          status: targetStatus,
+          updated_at: new Date().toISOString(),
+          paid_at: targetStatus === COMMISSION_STATUS.PAID ? new Date().toISOString() : null
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localCommissionTransactions = localCommissionTransactions.map(t =>
+      t.id === id
+        ? {
+            ...t,
+            status: targetStatus,
+            updated_at: new Date().toISOString(),
+            paid_at: targetStatus === COMMISSION_STATUS.PAID ? new Date().toISOString() : t.paid_at
+          }
+        : t
+    );
+    return localCommissionTransactions.find(t => t.id === id);
+  },
+
+  /**
    * Registra un snapshot inmutable de condiciones al confirmar un acuerdo o venta
    */
   recordTransactionSnapshot: async (snapshotData) => {
@@ -136,14 +210,15 @@ export const commissionService = {
       commercialCommissionRate: snapshotData.commercial_rate,
       commercialCommissionAmount: snapshotData.commercial_amount,
       commercialCommissionType: snapshotData.commercial_type || 'percentage',
-      sellioCommissionRate: snapshotData.sellio_rate || 2.0,
+      sellioCommissionRate: Math.min(SELLIO_MAX_COMMISSION_RATE, snapshotData.sellio_rate || 2.0),
       sellioCommissionModel: snapshotData.sellio_model || 'fixed',
       quantity: snapshotData.units_sold || 1
     });
 
     const newRecord = {
-      id: `tx_comm_${Date.now()}`,
+      id: snapshotData.id || `tx_comm_${Date.now()}`,
       deal_id: snapshotData.deal_id || `deal_${Date.now()}`,
+      sale_id: snapshotData.sale_id || null,
       product_id: snapshotData.product_id,
       product_name: snapshotData.product_name,
       company_id: snapshotData.company_id,
@@ -158,7 +233,7 @@ export const commissionService = {
       sellio_rate: calculated.sellioRateApplied,
       sellio_amount: calculated.sellioCommission,
       company_net: calculated.companyNetBeforeOtherCosts,
-      status: snapshotData.status || 'sale_confirmed',
+      status: snapshotData.status || COMMISSION_STATUS.PENDING,
       payment_trigger: snapshotData.payment_trigger || 'paid_sale',
       payment_period: snapshotData.payment_period || '30 días fin de mes',
       created_at: new Date().toISOString(),
@@ -182,21 +257,16 @@ export const commissionService = {
     return newRecord;
   },
 
-  /**
-   * Obtiene los tramos configurables de volumen
-   */
-  getVolumeTiers: () => {
-    return DEFAULT_VOLUME_TIERS;
-  }
+  getVolumeTiers: () => DEFAULT_VOLUME_TIERS
 };
 
 const processCompanyAggregates = (transactions) => {
   const totalSales = transactions.reduce((acc, t) => acc + (t.sale_value || 0), 0);
   const totalCommercialPaid = transactions
-    .filter(t => t.status === 'commission_paid')
+    .filter(t => t.status === COMMISSION_STATUS.PAID)
     .reduce((acc, t) => acc + (t.commercial_amount || 0), 0);
   const totalCommercialPending = transactions
-    .filter(t => t.status !== 'commission_paid' && t.status !== 'cancelled')
+    .filter(t => t.status !== COMMISSION_STATUS.PAID && t.status !== COMMISSION_STATUS.CANCELLED)
     .reduce((acc, t) => acc + (t.commercial_amount || 0), 0);
   const totalSellioAccrued = transactions
     .reduce((acc, t) => acc + (t.sellio_amount || 0), 0);
@@ -217,10 +287,10 @@ const processCompanyAggregates = (transactions) => {
 const processSellerAggregates = (transactions) => {
   const totalSalesGenerated = transactions.reduce((acc, t) => acc + (t.sale_value || 0), 0);
   const totalCommissionPaid = transactions
-    .filter(t => t.status === 'commission_paid')
+    .filter(t => t.status === COMMISSION_STATUS.PAID)
     .reduce((acc, t) => acc + (t.commercial_amount || 0), 0);
   const totalCommissionPending = transactions
-    .filter(t => t.status === 'commission_pending' || t.status === 'sale_confirmed')
+    .filter(t => t.status === COMMISSION_STATUS.PENDING || t.status === COMMISSION_STATUS.APPROVED)
     .reduce((acc, t) => acc + (t.commercial_amount || 0), 0);
 
   return {

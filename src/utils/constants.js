@@ -46,3 +46,71 @@ export const COMMISSION_TYPES = {
   TIERED: 'Comisión escalada por volumen',
   RECURRING: 'Comisión recurrente'
 };
+
+/**
+ * Estados centralizados del dominio de Sellio
+ */
+export const OPPORTUNITY_STATUS = {
+  DRAFT: 'draft',
+  ACTIVE: 'active',
+  PAUSED: 'paused',
+  CLOSED: 'closed',
+  ARCHIVED: 'archived'
+};
+
+export const REQUEST_STATUS = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+  EXPIRED: 'expired',
+  CANCELLED: 'cancelled'
+};
+
+export const CONTACT_STATUS = {
+  INITIATED: 'initiated',
+  ACTIVE: 'active',
+  REVEALED: 'revealed',
+  BLOCKED: 'blocked',
+  CLOSED: 'closed'
+};
+
+export const AGREEMENT_STATUS = {
+  DRAFT: 'draft',
+  PENDING_SIGNATURE: 'pending_signature',
+  ACTIVE: 'active',
+  COMPLETED: 'completed',
+  TERMINATED: 'terminated',
+  DISPUTED: 'disputed'
+};
+
+export const SALE_STATUS = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+  DISPUTED: 'disputed'
+};
+
+export const COMMISSION_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  PAID: 'paid',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+  DISPUTED: 'disputed'
+};
+
+export const DISPUTE_STATUS = {
+  OPENED: 'opened',
+  UNDER_REVIEW: 'under_review',
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected'
+};
+
+export const VERIFICATION_STATUS = {
+  UNVERIFIED: 'unverified',
+  PENDING: 'pending',
+  VERIFIED: 'verified',
+  REJECTED: 'rejected'
+};

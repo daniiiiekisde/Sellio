@@ -11,7 +11,9 @@
  * TOTAL:           100 puntos
  */
 
-export const calculateMatchingScore = (sellerProfile = {}, opportunity = {}) => {
+export const calculateMatchingScore = (rawSeller = {}, rawOpp = {}) => {
+  const sellerProfile = rawSeller || {};
+  const opportunity = rawOpp || {};
   let score = 0;
   const breakdown = [];
 

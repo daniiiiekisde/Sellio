@@ -1,5 +1,8 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { calculateCommissions } from '../utils/commissionCalculator';
+import { SALE_STATUS, COMMISSION_STATUS } from '../utils/constants';
+import { validateStateTransition } from '../utils/stateTransitions';
+import { commissionService } from './commissionService';
 
 const INITIAL_MOCK_SALES = [
   {
@@ -21,7 +24,7 @@ const INITIAL_MOCK_SALES = [
     sellio_commission_amount: 24,
     company_net_amount: 996,
     offer_version_applied: 1,
-    status: 'confirmed', // lead | interested | contacted | negotiation | agreement | sale_pending | sale_confirmed | cancelled | refunded
+    status: SALE_STATUS.CONFIRMED,
     sale_snapshot: {
       product_name: 'Aceite de Oliva Virgen Extra Ecológico D.O. 500ml',
       unit_price: 120,
@@ -55,7 +58,7 @@ const INITIAL_MOCK_SALES = [
     sellio_commission_amount: 67.5,
     company_net_amount: 3982.5,
     offer_version_applied: 1,
-    status: 'confirmed',
+    status: SALE_STATUS.CONFIRMED,
     sale_snapshot: {
       product_name: 'Placas Solares Monocristalinas de Alta Eficiencia 550W',
       unit_price: 4500,
@@ -165,7 +168,7 @@ export const salesService = {
       sellio_commission_amount: calc.sellioCommission,
       company_net_amount: calc.companyNetBeforeOtherCosts,
       offer_version_applied: offer_version,
-      status: 'confirmed',
+      status: SALE_STATUS.CONFIRMED,
       sale_snapshot: snapshot,
       created_at: new Date().toISOString()
     };
@@ -178,11 +181,71 @@ export const salesService = {
         sale_id: savedSale.id,
         snapshot_data: snapshot
       }]);
+      // Crear transacción de comisión automáticamente
+      await commissionService.recordTransactionSnapshot({
+        sale_id: savedSale.id,
+        deal_id: agreement_id,
+        company_id,
+        company_name,
+        seller_id,
+        seller_name,
+        product_name,
+        unit_price,
+        units_sold: quantity,
+        commercial_rate: calc.commercialRateApplied,
+        sellio_rate: calc.sellioRateApplied,
+        status: COMMISSION_STATUS.PENDING
+      });
       return savedSale;
     }
 
     localSalesStore = [newSale, ...localSalesStore];
+    // Guardar transacción en comisiones
+    await commissionService.recordTransactionSnapshot({
+      sale_id: newSale.id,
+      deal_id: agreement_id,
+      company_id,
+      company_name,
+      seller_id,
+      seller_name,
+      product_name,
+      unit_price,
+      units_sold: quantity,
+      commercial_rate: calc.commercialRateApplied,
+      sellio_rate: calc.sellioRateApplied,
+      status: COMMISSION_STATUS.PENDING
+    });
+
     return newSale;
+  },
+
+  /**
+   * Actualiza el estado de una venta validando la máquina de estados
+   */
+  updateStatus: async (id, targetStatus) => {
+    const existing = localSalesStore.find(s => s.id === id);
+    const currentStatus = existing?.status || SALE_STATUS.PENDING;
+
+    const transitionCheck = validateStateTransition('sale', currentStatus, targetStatus);
+    if (!transitionCheck.isValid) {
+      throw new Error(transitionCheck.error);
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      const { data, error } = await supabase
+        .from('sales')
+        .update({ status: targetStatus, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localSalesStore = localSalesStore.map(s =>
+      s.id === id ? { ...s, status: targetStatus, updated_at: new Date().toISOString() } : s
+    );
+    return localSalesStore.find(s => s.id === id);
   }
 };
 
