@@ -3,11 +3,11 @@ import { salesService } from './sales';
 import { agreementsService } from './agreements';
 import { opportunitiesService } from './opportunities';
 import { requestsService } from './requests';
+import { disputesService } from './disputes';
 
 export const analyticsService = {
   /**
    * Métricas reales y deterministas para el Dashboard de la Empresa
-   * Si no hay ventas registradas, devuelve 0 sin inventar números.
    */
   getCompanyMetrics: async (companyId = 'usr_comp_1') => {
     try {
@@ -23,7 +23,6 @@ export const analyticsService = {
       const netCompanyRevenue = totalVolume - totalCommercialCommissions - totalSellioFee;
 
       const activeSellersSet = new Set(agreements.filter(a => a.status === 'active').map(a => a.seller_id));
-
       const pendingRequests = companyRequests.filter(r => r.status === 'Pendiente' || r.status === 'pending');
       const conversionRate = companyRequests.length > 0
         ? Math.round((sales.length / companyRequests.length) * 100 * 10) / 10
@@ -76,8 +75,8 @@ export const analyticsService = {
         confirmedSalesCount: sales.length,
         activeAgreementsCount: activeAgreements.length,
         sentRequestsCount: sellerRequests.length,
-        rating: 4.8,
-        level: sales.length >= 20 ? 'EXPERT' : sales.length >= 5 ? 'PRO' : 'ACTIVE',
+        rating: sales.length >= 5 ? 4.8 : null, // null si no tiene histórico suficiente
+        level: sales.length >= 20 ? 'EXPERT' : sales.length >= 5 ? 'PRO' : sales.length > 0 ? 'ACTIVE' : 'NEW',
         hasRealData: sales.length > 0 || agreements.length > 0
       };
     } catch (e) {
@@ -88,7 +87,7 @@ export const analyticsService = {
         confirmedSalesCount: 0,
         activeAgreementsCount: 0,
         sentRequestsCount: 0,
-        rating: 5.0,
+        rating: null,
         level: 'NEW',
         hasRealData: false
       };
@@ -105,17 +104,31 @@ export const analyticsService = {
           { count: compCount },
           { count: sellerCount },
           { count: oppCount },
-          { data: salesData }
+          { data: salesData },
+          { data: reqData },
+          { data: agrData },
+          { data: disputeData }
         ] = await Promise.all([
           supabase.from('company_profiles').select('*', { count: 'exact', head: true }),
           supabase.from('seller_profiles').select('*', { count: 'exact', head: true }),
           supabase.from('opportunities').select('*', { count: 'exact', head: true }),
-          supabase.from('sales').select('sale_value, commercial_commission_amount, sellio_commission_amount')
+          supabase.from('sales').select('sale_value, commercial_commission_amount, sellio_commission_amount'),
+          supabase.from('seller_opportunity_requests').select('status'),
+          supabase.from('agreements').select('status'),
+          supabase.from('disputes').select('status')
         ]);
 
         const totalVol = (salesData || []).reduce((acc, s) => acc + (Number(s.sale_value) || 0), 0);
         const totalComm = (salesData || []).reduce((acc, s) => acc + (Number(s.commercial_commission_amount) || 0), 0);
         const totalSellio = (salesData || []).reduce((acc, s) => acc + (Number(s.sellio_commission_amount) || 0), 0);
+
+        const totalRequests = (reqData || []).length;
+        const totalAgreements = (agrData || []).length;
+        const matchSuccess = totalRequests > 0 ? `${Math.round((totalAgreements / totalRequests) * 100 * 10) / 10}%` : '0%';
+
+        const totalDisputes = (disputeData || []).length;
+        const resolvedDisputes = (disputeData || []).filter(d => d.status === 'resolved' || d.status === 'rejected').length;
+        const disputeRate = totalDisputes > 0 ? `${Math.round((resolvedDisputes / totalDisputes) * 100)}%` : '100%';
 
         return {
           totalCompanies: compCount || 0,
@@ -124,18 +137,24 @@ export const analyticsService = {
           totalVolume: totalVol,
           totalCommissionsPaid: totalComm,
           totalPlatformRevenue: totalSellio,
-          matchingSuccessRate: oppCount > 0 ? '68.4%' : '0%',
-          disputeResolutionRate: '100%'
+          matchingSuccessRate: matchSuccess,
+          disputeResolutionRate: disputeRate
         };
       }
 
       const allSales = await salesService.getAll();
       const allOpps = await opportunitiesService.getAll();
       const allAgr = await agreementsService.getAll();
+      const allReqs = await requestsService.getAll();
+      const allDisputes = await disputesService.getAll();
 
       const totalVol = allSales.reduce((acc, s) => acc + (Number(s.sale_value) || 0), 0);
       const totalComm = allSales.reduce((acc, s) => acc + (Number(s.commercial_commission_amount) || 0), 0);
       const totalSellio = allSales.reduce((acc, s) => acc + (Number(s.sellio_commission_amount) || 0), 0);
+
+      const matchSuccess = allReqs.length > 0 ? `${Math.round((allAgr.length / allReqs.length) * 100 * 10) / 10}%` : '0%';
+      const resolvedDisputes = allDisputes.filter(d => d.status === 'resolved').length;
+      const disputeRate = allDisputes.length > 0 ? `${Math.round((resolvedDisputes / allDisputes.length) * 100)}%` : '100%';
 
       return {
         totalCompanies: 2,
@@ -144,8 +163,8 @@ export const analyticsService = {
         totalVolume: totalVol,
         totalCommissionsPaid: totalComm,
         totalPlatformRevenue: totalSellio,
-        matchingSuccessRate: allOpps.length > 0 ? '75%' : '0%',
-        disputeResolutionRate: '100%'
+        matchingSuccessRate: matchSuccess,
+        disputeResolutionRate: disputeRate
       };
     } catch (e) {
       console.error('Error computing admin metrics:', e);
