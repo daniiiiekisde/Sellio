@@ -11,7 +11,10 @@ import {
   Flame,
   Heart,
   SlidersHorizontal,
-  Compass
+  Compass,
+  Filter,
+  Search,
+  RotateCcw
 } from 'lucide-react';
 import { DashboardHeader, StatsCard } from '../../../components/dashboard';
 import { opportunitiesService } from '../../../services/opportunities';
@@ -25,6 +28,13 @@ import {
 import { CommissionSimulator } from '../../../components/commissions';
 import { SellerOnboardingModal } from '../../../components/onboarding';
 import { Modal, Button } from '../../../components/common';
+import {
+  OpportunityCardSkeleton,
+  EmptyState,
+  ErrorState,
+  Drawer,
+  useToast
+} from '../../../components/ui';
 import { useSavedOpportunities } from '../../../hooks/useSavedOpportunities';
 import { calculateSellioMatch, DEFAULT_COMMERCIAL_PROFILE } from '../../../utils/sellioMatch';
 import Products from '../../marketplace/Products';
@@ -34,6 +44,10 @@ export const SellerMarketplace = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  const { addToast } = useToast();
   
   // Perfil del comercial para matching reactivo
   const [commercialProfile, setCommercialProfile] = useState(DEFAULT_COMMERCIAL_PROFILE);
@@ -69,10 +83,12 @@ export const SellerMarketplace = () => {
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await opportunitiesService.getAll(filters);
       setOpportunities(data);
     } catch (err) {
       console.error('Error al cargar oportunidades:', err);
+      setError('No pudimos conectar con el catálogo de oportunidades. Comprueba tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -82,15 +98,27 @@ export const SellerMarketplace = () => {
     fetchOpportunities();
   }, [filters]);
 
+  const handleToggleSaveWithToast = (id) => {
+    const willBeSaved = !isSaved(id);
+    toggleSave(id);
+    if (willBeSaved) {
+      addToast('Oportunidad guardada en favoritos ♥', 'success');
+    } else {
+      addToast('Oportunidad eliminada de guardados', 'info');
+    }
+  };
+
   const handleToggleCompare = (opp) => {
     if (comparingOpps.some(o => o.id === opp.id)) {
       setComparingOpps(prev => prev.filter(o => o.id !== opp.id));
+      addToast('Oportunidad eliminada del comparador', 'info');
     } else {
       if (comparingOpps.length >= 3) {
-        alert('Puedes comparar un máximo de 3 oportunidades a la vez.');
+        addToast('Solo puedes comparar un máximo de 3 ofertas simultáneas', 'warning');
         return;
       }
       setComparingOpps(prev => [...prev, opp]);
+      addToast(`Añadido al comparador (${comparingOpps.length + 1}/3)`, 'success');
     }
   };
 
@@ -110,6 +138,7 @@ export const SellerMarketplace = () => {
         status: 'pending'
       });
       setInterestSubmitted(true);
+      addToast('¡Candidatura comercial enviada con éxito! 🎉', 'success');
       setTimeout(() => {
         setInterestSubmitted(false);
         setSelectedOppForInterest(null);
@@ -117,6 +146,7 @@ export const SellerMarketplace = () => {
       }, 1500);
     } catch (err) {
       console.error('Error al enviar candidatura:', err);
+      addToast('Error al enviar candidatura. Reintenta de nuevo.', 'error');
     }
   };
 
@@ -126,13 +156,13 @@ export const SellerMarketplace = () => {
       ...preferences
     }));
     setActiveTab('for_you');
+    addToast('Perfil Sellio Match actualizado con éxito', 'success');
   };
 
   // Filtrado reactivo según la pestaña activa
   const displayedOpportunities = useMemo(() => {
     let list = [...opportunities];
 
-    // Sellio Match dinámico adjunto a cada oportunidad
     list = list.map(opp => ({
       ...opp,
       matchData: calculateSellioMatch(opp, commercialProfile)
@@ -366,19 +396,34 @@ export const SellerMarketplace = () => {
             savedCount={savedCount}
           />
 
-          {/* Opportunities View (Grid or List) */}
+          {/* Opportunities View / States */}
           {loading ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-              Calculando Sellio Match y cargando oportunidades...
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+              {[1, 2, 3, 4, 5, 6].map((idx) => (
+                <OpportunityCardSkeleton key={idx} />
+              ))}
             </div>
+          ) : error ? (
+            <ErrorState
+              title="Error al consultar oportunidades"
+              description={error}
+              onRetry={fetchOpportunities}
+            />
           ) : displayedOpportunities.length === 0 ? (
-            <div style={{ padding: '3.5rem', textAlign: 'center', background: '#fff', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-card)' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</div>
-              <h3 style={{ margin: '0 0 0.5rem 0', fontWeight: 800 }}>No hay oportunidades que coincidan con estos filtros</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Prueba a restablecer los filtros o ajustar tu perfil comercial en Sellio Match.
-              </p>
-            </div>
+            <EmptyState
+              icon={ShoppingBag}
+              title={activeTab === 'saved' ? 'Aún no tienes oportunidades guardadas' : 'No se encontraron oportunidades coincidentes'}
+              description={
+                activeTab === 'saved'
+                  ? 'Guarda oportunidades con el icono de corazón en el catálogo para tenerlas siempre a mano.'
+                  : 'Prueba a relajar los filtros de búsqueda o ajusta tu perfil de Sellio Match para ampliar los resultados.'
+              }
+              actionLabel={activeTab === 'saved' ? 'Explorar Oportunidades' : 'Restablecer Filtros'}
+              onAction={() => {
+                if (activeTab === 'saved') setActiveTab('all');
+                else setFilters({ search: '', category: '', sector: '', region: '', minCommission: '', onlyVerified: false, onlyTopMatch: false, onlySaved: false, sortBy: 'relevant' });
+              }}
+            />
           ) : viewMode === 'list' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {displayedOpportunities.map((opp) => (
@@ -391,7 +436,7 @@ export const SellerMarketplace = () => {
                   onViewDetail={(o) => setSelectedOppForDetail(o)}
                   onInterestClick={(o) => setSelectedOppForInterest(o)}
                   isSaved={isSaved(opp.id)}
-                  onToggleSave={toggleSave}
+                  onToggleSave={handleToggleSaveWithToast}
                 />
               ))}
             </div>
@@ -407,7 +452,7 @@ export const SellerMarketplace = () => {
                   onViewDetail={(o) => setSelectedOppForDetail(o)}
                   onInterestClick={(o) => setSelectedOppForInterest(o)}
                   isSaved={isSaved(opp.id)}
-                  onToggleSave={toggleSave}
+                  onToggleSave={handleToggleSaveWithToast}
                 />
               ))}
             </div>
