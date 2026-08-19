@@ -23,7 +23,12 @@ import {
   Handshake,
   ShoppingCart,
   AlertTriangle,
-  History
+  History,
+  Heart,
+  BarChart3,
+  CheckCircle,
+  TrendingUp,
+  SlidersHorizontal
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { USER_ROLES, USER_ROLE_LABELS } from '../utils/constants';
@@ -59,14 +64,17 @@ export const DashboardLayout = () => {
           { to: '/company/agreements', label: 'Acuerdos Comerciales', icon: Handshake },
           { to: '/company/sales', label: 'Ventas Confirmadas', icon: ShoppingCart },
           { to: '/company/requests', label: 'Solicitudes Recibidas', icon: Inbox },
-          { to: '/company/contacts', label: 'Red de Comerciales', icon: Users },
+          { to: '/company/crm', label: 'CRM / Red de Comerciales', icon: Users },
           { to: '/company/messages', label: 'Mensajes', icon: MessageSquare },
+          { to: '/company/commissions', label: 'Liquidación Comisiones', icon: BadgePercent },
+          { to: '/company/analytics', label: 'Sellio Pulse (Analítica)', icon: BarChart3 },
           { to: '/company/profile', label: 'Perfil de Empresa', icon: Building2 },
         ];
       case USER_ROLES.SELLER:
         return [
           { to: '/seller/dashboard', label: 'Panel General', icon: LayoutDashboard },
-          { to: '/seller/marketplace', label: 'Explorar Oportunidades', icon: ShoppingBag },
+          { to: '/seller/marketplace', label: 'Marketplace B2B', icon: ShoppingBag },
+          { to: '/seller/saved', label: 'Guardados Inteligentes', icon: Heart },
           { to: '/seller/companies', label: 'Directorio Empresas', icon: Building2 },
           { to: '/seller/products', label: 'Mi Cartera de Productos', icon: Package },
           { to: '/seller/agreements', label: 'Mis Acuerdos', icon: Handshake },
@@ -74,7 +82,7 @@ export const DashboardLayout = () => {
           { to: '/seller/requests', label: 'Candidaturas Enviadas', icon: Inbox },
           { to: '/seller/contacts', label: 'Mis Contactos', icon: Users },
           { to: '/seller/messages', label: 'Mensajes', icon: MessageSquare },
-          { to: '/seller/commissions', label: 'Comisiones Ganadas', icon: BadgePercent },
+          { to: '/seller/commissions', label: 'Ganancias y Comisiones', icon: BadgePercent },
           { to: '/seller/profile', label: 'Mi Perfil Comercial', icon: User },
         ];
       case USER_ROLES.ADMIN:
@@ -83,11 +91,14 @@ export const DashboardLayout = () => {
           { to: '/admin/users', label: 'Control Usuarios', icon: Users },
           { to: '/admin/companies', label: 'Empresas Registradas', icon: Building2 },
           { to: '/admin/sellers', label: 'Comerciales', icon: User },
+          { to: '/admin/verification', label: 'Verificación y Compliance', icon: ShieldCheck },
           { to: '/admin/products', label: 'Moderación Catálogos', icon: Package },
           { to: '/admin/opportunities', label: 'Moderación Oportunidades', icon: Sparkles },
+          { to: '/admin/commissions', label: 'Supervisión Comisiones', icon: BadgePercent },
+          { to: '/admin/transactions', label: 'Ventas y Transacciones', icon: CreditCard },
           { to: '/admin/disputes', label: 'Resolución Disputas', icon: AlertTriangle },
           { to: '/admin/audit', label: 'Libro de Auditoría', icon: History },
-          { to: '/admin/transactions', label: 'Transacciones y Planes', icon: CreditCard },
+          { to: '/admin/analytics', label: 'Analítica Global', icon: BarChart3 },
           { to: '/admin/settings', label: 'Ajustes de Plataforma', icon: Settings },
         ];
       default:
@@ -98,6 +109,7 @@ export const DashboardLayout = () => {
         ];
     }
   };
+
 
   const navLinks = getNavLinks();
 

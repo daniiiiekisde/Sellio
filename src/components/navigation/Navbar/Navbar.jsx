@@ -43,9 +43,13 @@ export const Navbar = () => {
 
         <nav className="navbar-nav desktop-only" aria-label="Principal">
           <NavLink to="/products" className="nav-link">Oportunidades</NavLink>
+          <NavLink to="/how-it-works" className="nav-link">Cómo funciona</NavLink>
+          <NavLink to="/pricing" className="nav-link">Precios</NavLink>
+          <NavLink to="/trust" className="nav-link">Confianza</NavLink>
           <NavLink to="/companies" className="nav-link">Empresas</NavLink>
           <NavLink to="/sellers" className="nav-link">Comerciales</NavLink>
         </nav>
+
 
         <div className="navbar-actions desktop-only">
           {isAuthenticated ? (
@@ -69,9 +73,13 @@ export const Navbar = () => {
       {open && (
         <div className="mobile-drawer">
           <NavLink to="/products" className="mobile-nav-link" onClick={close}>Oportunidades</NavLink>
+          <NavLink to="/how-it-works" className="mobile-nav-link" onClick={close}>Cómo funciona</NavLink>
+          <NavLink to="/pricing" className="mobile-nav-link" onClick={close}>Precios</NavLink>
+          <NavLink to="/trust" className="mobile-nav-link" onClick={close}>Confianza</NavLink>
           <NavLink to="/companies" className="mobile-nav-link" onClick={close}>Empresas</NavLink>
           <NavLink to="/sellers" className="mobile-nav-link" onClick={close}>Comerciales</NavLink>
           <div className="mobile-drawer-auth">
+
             {isAuthenticated ? (
               <>
                 <Link to={dashboard} className="mobile-btn" onClick={close}>Mi espacio</Link>

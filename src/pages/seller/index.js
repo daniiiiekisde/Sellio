@@ -30,3 +30,7 @@ export * from './Commissions';
 
 export { default as SellerProfile } from './Profile';
 export * from './Profile';
+
+export { default as SellerSaved } from './Saved/Saved';
+export * from './Saved/Saved';
+

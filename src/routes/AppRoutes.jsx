@@ -10,7 +10,14 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 
 // Public Pages
-import { Home, Login, Register } from '../pages/public';
+import {
+  Home,
+  Login,
+  Register,
+  HowItWorks,
+  Pricing,
+  Trust
+} from '../pages/public';
 
 // Marketplace Pages
 import {
@@ -31,7 +38,10 @@ import {
   CompanySales,
   CompanyRequests,
   CompanyContacts,
+  CompanyCRM,
   CompanyMessages,
+  CompanyCommissions,
+  CompanyAnalytics,
   CompanyProfile
 } from '../pages/company';
 
@@ -47,6 +57,7 @@ import {
   SellerContacts,
   SellerMessages,
   SellerCommissions,
+  SellerSaved,
   SellerProfile
 } from '../pages/seller';
 
@@ -58,9 +69,12 @@ import {
   AdminSellers,
   AdminProducts,
   AdminOpportunities,
+  AdminVerification,
   AdminTransactions,
+  AdminCommissions,
   AdminDisputes,
   AdminAudit,
+  AdminAnalytics,
   AdminSettings
 } from '../pages/admin';
 
@@ -70,6 +84,9 @@ export const AppRoutes = () => {
       {/* Public Pages with PublicLayout (Navbar & Footer) */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/trust" element={<Trust />} />
         
         {/* Marketplace Explorer */}
         <Route path="/products" element={<Products />} />
@@ -97,7 +114,11 @@ export const AppRoutes = () => {
           <Route path="/company/sales" element={<CompanySales />} />
           <Route path="/company/requests" element={<CompanyRequests />} />
           <Route path="/company/contacts" element={<CompanyContacts />} />
+          <Route path="/company/sellers" element={<CompanyContacts />} />
+          <Route path="/company/crm" element={<CompanyCRM />} />
           <Route path="/company/messages" element={<CompanyMessages />} />
+          <Route path="/company/commissions" element={<CompanyCommissions />} />
+          <Route path="/company/analytics" element={<CompanyAnalytics />} />
           <Route path="/company/profile" element={<CompanyProfile />} />
         </Route>
 
@@ -105,6 +126,7 @@ export const AppRoutes = () => {
         <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.SELLER]} />}>
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/marketplace" element={<SellerMarketplace />} />
+          <Route path="/seller/saved" element={<SellerSaved />} />
           <Route path="/seller/companies" element={<SellerCompanies />} />
           <Route path="/seller/products" element={<SellerProducts />} />
           <Route path="/seller/agreements" element={<SellerAgreements />} />
@@ -113,6 +135,7 @@ export const AppRoutes = () => {
           <Route path="/seller/contacts" element={<SellerContacts />} />
           <Route path="/seller/messages" element={<SellerMessages />} />
           <Route path="/seller/commissions" element={<SellerCommissions />} />
+          <Route path="/seller/earnings" element={<SellerCommissions />} />
           <Route path="/seller/profile" element={<SellerProfile />} />
         </Route>
 
@@ -124,9 +147,13 @@ export const AppRoutes = () => {
           <Route path="/admin/sellers" element={<AdminSellers />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/opportunities" element={<AdminOpportunities />} />
+          <Route path="/admin/verification" element={<AdminVerification />} />
+          <Route path="/admin/sales" element={<AdminTransactions />} />
+          <Route path="/admin/transactions" element={<AdminTransactions />} />
+          <Route path="/admin/commissions" element={<AdminCommissions />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
           <Route path="/admin/audit" element={<AdminAudit />} />
-          <Route path="/admin/transactions" element={<AdminTransactions />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>
       </Route>

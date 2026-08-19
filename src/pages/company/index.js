@@ -24,3 +24,13 @@ export * from './Messages';
 
 export { default as CompanyProfile } from './Profile';
 export * from './Profile';
+
+export { default as CompanyCRM } from './CRM/CRM';
+export * from './CRM/CRM';
+
+export { default as CompanyCommissions } from './Commissions/Commissions';
+export * from './Commissions/Commissions';
+
+export { default as CompanyAnalytics } from './Analytics/Analytics';
+export * from './Analytics/Analytics';
+

@@ -27,3 +27,13 @@ export * from './Audit';
 
 export { default as AdminSettings } from './Settings';
 export * from './Settings';
+
+export { default as AdminVerification } from './Verification/Verification';
+export * from './Verification/Verification';
+
+export { default as AdminCommissions } from './Commissions/Commissions';
+export * from './Commissions/Commissions';
+
+export { default as AdminAnalytics } from './Analytics/Analytics';
+export * from './Analytics/Analytics';
+
