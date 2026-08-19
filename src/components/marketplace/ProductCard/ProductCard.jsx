@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Percent, Tag, Sparkles, Building2, ArrowUpRight } from 'lucide-react';
+import { MapPin, Percent, Tag, Sparkles, Building2, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '../../../utils/formatters';
+import { CommissionBadge } from '../../commissions';
 import Button from '../../common/Button';
 import './ProductCard.css';
 
@@ -13,10 +14,17 @@ export const ProductCard = ({ product, onInterestClick }) => {
     category,
     targetTerritory,
     commissionRate,
+    commercial_commission_rate,
+    sellio_commission_rate,
     price,
     description,
     matchingScore
   } = product || {};
+
+  const activeCommercialRate = commercial_commission_rate || commissionRate || '15%';
+  const unitPrice = typeof price === 'number' ? price : (parseFloat(String(price).replace('€', '').trim()) || 0);
+  const numericRate = parseFloat(String(activeCommercialRate).replace('%', '').trim()) || 15;
+  const estimatedEarn = unitPrice > 0 ? (unitPrice * (numericRate / 100)) : null;
 
   return (
     <div className="product-card">
@@ -52,12 +60,22 @@ export const ProductCard = ({ product, onInterestClick }) => {
         
         <p className="product-card-desc">{description}</p>
 
+        {/* Separated Commission Badge */}
+        <div style={{ margin: '0.6rem 0' }}>
+          <CommissionBadge
+            commercialRate={activeCommercialRate}
+            sellioRate={sellio_commission_rate || 2.0}
+            showSellio={false}
+            variant="compact"
+          />
+        </div>
+
         <div className="product-card-meta">
-          {commissionRate && (
+          {estimatedEarn && (
             <div className="meta-item meta-commission">
-              <span className="meta-label">Comisión</span>
+              <span className="meta-label">Ganancia comercial</span>
               <span className="meta-value commission-highlight">
-                <Percent size={13} /> {commissionRate}
+                {formatCurrency(estimatedEarn)} / ud
               </span>
             </div>
           )}

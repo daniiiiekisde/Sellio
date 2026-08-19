@@ -1,0 +1,125 @@
+.commission-badge-container {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  font-family: var(--font-family);
+}
+
+.comm-badge-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.comm-badge-commercial {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(20, 184, 166, 0.08) 100%);
+  border-color: rgba(37, 99, 235, 0.2);
+  color: var(--primary, #2563eb);
+}
+
+.comm-badge-sellio {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: var(--border-color, #e2e8f0);
+  color: var(--text-secondary, #475569);
+}
+
+.comm-badge-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.comm-badge-body {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.comm-rate-number {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary, #0f172a);
+}
+
+.comm-badge-commercial .comm-rate-number {
+  color: var(--primary, #2563eb);
+}
+
+.comm-guarantee-note {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent, #14b8a6);
+  text-transform: uppercase;
+}
+
+.comm-badge-sellio .comm-guarantee-note {
+  color: var(--text-muted, #64748b);
+}
+
+/* Pill Variant */
+.comm-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 9999px;
+  padding: 0.2rem 0.6rem;
+  gap: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.comm-pill-commercial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary, #2563eb);
+}
+
+.comm-pill-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #475569);
+  font-weight: 600;
+}
+
+.comm-pill-value {
+  color: var(--primary, #2563eb);
+  font-weight: 800;
+}
+
+.comm-pill-sellio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  padding-left: 0.4rem;
+  border-left: 1px solid var(--border-color, #e2e8f0);
+}
+
+.comm-pill-sellio-label {
+  color: var(--text-muted, #64748b);
+}
+
+.comm-pill-sellio-value {
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
+}
+
+/* Size Modifiers */
+.comm-badge-sm .comm-rate-number {
+  font-size: 0.85rem;
+}
+.comm-badge-sm .comm-badge-card {
+  padding: 0.25rem 0.5rem;
+}
