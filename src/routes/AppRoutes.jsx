@@ -27,6 +27,8 @@ import {
   CompanyDashboard,
   CompanyProducts,
   CompanyOpportunities,
+  CompanyAgreements,
+  CompanySales,
   CompanyRequests,
   CompanyContacts,
   CompanyMessages,
@@ -39,6 +41,8 @@ import {
   SellerMarketplace,
   SellerCompanies,
   SellerProducts,
+  SellerAgreements,
+  SellerSales,
   SellerRequests,
   SellerContacts,
   SellerMessages,
@@ -55,6 +59,8 @@ import {
   AdminProducts,
   AdminOpportunities,
   AdminTransactions,
+  AdminDisputes,
+  AdminAudit,
   AdminSettings
 } from '../pages/admin';
 
@@ -87,6 +93,8 @@ export const AppRoutes = () => {
           <Route path="/company/dashboard" element={<CompanyDashboard />} />
           <Route path="/company/products" element={<CompanyProducts />} />
           <Route path="/company/opportunities" element={<CompanyOpportunities />} />
+          <Route path="/company/agreements" element={<CompanyAgreements />} />
+          <Route path="/company/sales" element={<CompanySales />} />
           <Route path="/company/requests" element={<CompanyRequests />} />
           <Route path="/company/contacts" element={<CompanyContacts />} />
           <Route path="/company/messages" element={<CompanyMessages />} />
@@ -99,6 +107,8 @@ export const AppRoutes = () => {
           <Route path="/seller/marketplace" element={<SellerMarketplace />} />
           <Route path="/seller/companies" element={<SellerCompanies />} />
           <Route path="/seller/products" element={<SellerProducts />} />
+          <Route path="/seller/agreements" element={<SellerAgreements />} />
+          <Route path="/seller/sales" element={<SellerSales />} />
           <Route path="/seller/requests" element={<SellerRequests />} />
           <Route path="/seller/contacts" element={<SellerContacts />} />
           <Route path="/seller/messages" element={<SellerMessages />} />
@@ -114,6 +124,8 @@ export const AppRoutes = () => {
           <Route path="/admin/sellers" element={<AdminSellers />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/opportunities" element={<AdminOpportunities />} />
+          <Route path="/admin/disputes" element={<AdminDisputes />} />
+          <Route path="/admin/audit" element={<AdminAudit />} />
           <Route path="/admin/transactions" element={<AdminTransactions />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>

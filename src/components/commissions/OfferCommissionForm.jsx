@@ -1,40 +1,23 @@
-import React, { useState } from 'react';
-import { 
-  SELLIO_MAX_COMMISSION_RATE, 
-  DEFAULT_VOLUME_TIERS,
-  validateCommissionConfig, 
-  parseRate 
-} from '../../utils/commissionCalculator';
-import CommissionPreview from './CommissionPreview';
-import VolumeCommissionTiers from './VolumeCommissionTiers';
-import { ShieldCheck, CheckCircle2, AlertTriangle, HelpCircle, ArrowRight } from 'lucide-react';
-import './OfferCommissionForm.css';
+import React from 'react';
+import { SELLIO_MAX_COMMISSION_RATE, validateCommissionConfig } from '../../utils/commissionCalculator';
+import { CommissionBreakdown } from './CommissionBreakdown';
+import { VolumeCommissionTiers } from './VolumeCommissionTiers';
+import { Sparkles, AlertCircle, Percent, DollarSign } from 'lucide-react';
+import './commissions.css';
 
 export const OfferCommissionForm = ({
-  values = {},
+  price = 0,
+  values = {
+    commercialCommissionType: 'percentage',
+    commercialCommissionRate: 15,
+    commercialCommissionAmount: 0,
+    sellioCommissionModel: 'fixed',
+    sellioCommissionRate: 2
+  },
   onChange,
-  productPrice = 100
+  errors = []
 }) => {
-  // Commercial commission state
-  const commercialType = values.commercial_commission_type || 'percentage';
-  const commercialRate = values.commercial_commission_rate !== undefined ? values.commercial_commission_rate : 15;
-  const commercialAmount = values.commercial_commission_amount || 0;
-  const commercialBasis = values.commercial_commission_basis || 'sale_value';
-  const commissionNotes = values.commission_notes || '';
-
-  // Sellio commission state
-  const sellioModel = values.sellio_commission_model || 'fixed';
-  const sellioRate = values.sellio_commission_rate !== undefined ? values.sellio_commission_rate : 2.0;
-  const volumeTiers = values.volume_tiers || DEFAULT_VOLUME_TIERS;
-
-  // Conditions
-  const paymentTrigger = values.commission_payment_trigger || 'paid_sale';
-  const paymentPeriod = values.payment_period || '30 días fin de mes';
-  const minimumSale = values.minimum_sale_value || '';
-
-  const [activeTab, setActiveTab] = useState('commercial'); // 'commercial' | 'sellio' | 'conditions' | 'preview'
-
-  const handleFieldChange = (field, value) => {
+  const handleChange = (field, value) => {
     if (onChange) {
       onChange({
         ...values,
@@ -44,288 +27,152 @@ export const OfferCommissionForm = ({
   };
 
   const validation = validateCommissionConfig({
-    commercialRate,
-    commercialAmount,
-    commercialType,
-    sellioRate,
-    sellioModel,
-    volumeTiers
+    commercialRate: values.commercialCommissionRate,
+    commercialAmount: values.commercialCommissionAmount,
+    commercialType: values.commercialCommissionType,
+    sellioRate: values.sellioCommissionRate,
+    sellioModel: values.sellioCommissionModel
   });
 
   return (
-    <div className="offer-commission-form-container">
-      {/* Tab Navigation */}
-      <div className="form-subtabs">
-        <button
-          type="button"
-          className={`subtab-btn ${activeTab === 'commercial' ? 'subtab-active' : ''}`}
-          onClick={() => setActiveTab('commercial')}
-        >
-          1. Comisión Comercial
-        </button>
-        <button
-          type="button"
-          className={`subtab-btn ${activeTab === 'sellio' ? 'subtab-active' : ''}`}
-          onClick={() => setActiveTab('sellio')}
-        >
-          2. Comisión Sellio (Máx 5%)
-        </button>
-        <button
-          type="button"
-          className={`subtab-btn ${activeTab === 'conditions' ? 'subtab-active' : ''}`}
-          onClick={() => setActiveTab('conditions')}
-        >
-          3. Condiciones y Pagos
-        </button>
-        <button
-          type="button"
-          className={`subtab-btn ${activeTab === 'preview' ? 'subtab-active' : ''}`}
-          onClick={() => setActiveTab('preview')}
-        >
-          4. Simulación Económica
-        </button>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* 1. Configuración Comisión Comercial */}
+      <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: 'var(--radius-lg)', border: '1px solid #e2e8f0' }}>
+        <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          1. Comisión para el Comercial
+        </h4>
 
-      {/* Validation Errors banner */}
-      {!validation.isValid && (
-        <div className="validation-error-banner">
-          <AlertTriangle size={16} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           <div>
-            <strong>Atención a las condiciones:</strong>
-            <ul>
-              {validation.errors.map((err, i) => <li key={i}>{err}</li>)}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 1: Comercial */}
-      {activeTab === 'commercial' && (
-        <div className="subtab-content">
-          <div className="callout-banner callout-success">
-            <CheckCircle2 size={16} className="callout-icon" />
-            <div className="callout-text">
-              <strong>Garantía de transparencia:</strong> Esta comisión pertenece íntegramente al comercial. Sellio no la descuenta en ningún caso.
-            </div>
-          </div>
-
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Tipo de Retribución</label>
-              <div className="type-toggle-group">
-                <button
-                  type="button"
-                  className={`type-toggle-btn ${commercialType === 'percentage' ? 'active' : ''}`}
-                  onClick={() => handleFieldChange('commercial_commission_type', 'percentage')}
-                >
-                  Porcentaje (%)
-                </button>
-                <button
-                  type="button"
-                  className={`type-toggle-btn ${commercialType === 'fixed_amount' ? 'active' : ''}`}
-                  onClick={() => handleFieldChange('commercial_commission_type', 'fixed_amount')}
-                >
-                  Importe Fijo (€)
-                </button>
-              </div>
-            </div>
-
-            {commercialType === 'percentage' ? (
-              <div className="form-group">
-                <label className="form-label">Porcentaje Comercial (%)</label>
-                <div className="input-with-suffix">
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="1"
-                    max="100"
-                    className="form-input"
-                    value={commercialRate}
-                    onChange={(e) => handleFieldChange('commercial_commission_rate', parseFloat(e.target.value) || 0)}
-                    placeholder="15"
-                  />
-                  <span className="input-suffix">%</span>
-                </div>
-              </div>
-            ) : (
-              <div className="form-group">
-                <label className="form-label">Importe Fijo por Venta (€)</label>
-                <div className="input-with-suffix">
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    className="form-input"
-                    value={commercialAmount}
-                    onChange={(e) => handleFieldChange('commercial_commission_amount', parseFloat(e.target.value) || 0)}
-                    placeholder="25.00"
-                  />
-                  <span className="input-suffix">€</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Base de Cálculo</label>
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+              Modalidad de Comisión
+            </label>
             <select
-              className="form-select"
-              value={commercialBasis}
-              onChange={(e) => handleFieldChange('commercial_commission_basis', e.target.value)}
+              value={values.commercialCommissionType}
+              onChange={(e) => handleChange('commercialCommissionType', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid #cbd5e1',
+                background: '#fff'
+              }}
             >
-              <option value="sale_value">Sobre valor de venta bruta (PVP)</option>
-              <option value="net_sale">Sobre venta neta (descontando portes directos)</option>
-              <option value="other">Otro acuerdo específico</option>
+              <option value="percentage">Porcentaje por Venta (%)</option>
+              <option value="fixed_amount">Importe Fijo por Venta (€)</option>
             </select>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Notas o Aclaraciones de Comisión (Opcional)</label>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+              {values.commercialCommissionType === 'percentage' ? 'Porcentaje Acordado (%)' : 'Importe Fijo (€)'}
+            </label>
             <input
-              type="text"
-              className="form-input"
-              value={commissionNotes}
-              onChange={(e) => handleFieldChange('commission_notes', e.target.value)}
-              placeholder="Ej: Aplica tanto a primera venta como a reposiciones recurrentes durante 12 meses"
+              type="number"
+              min="0"
+              step={values.commercialCommissionType === 'percentage' ? '0.5' : '1'}
+              max={values.commercialCommissionType === 'percentage' ? '100' : '999999'}
+              value={values.commercialCommissionType === 'percentage' ? values.commercialCommissionRate : values.commercialCommissionAmount}
+              onChange={(e) => handleChange(
+                values.commercialCommissionType === 'percentage' ? 'commercialCommissionRate' : 'commercialCommissionAmount',
+                parseFloat(e.target.value) || 0
+              )}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid #cbd5e1'
+              }}
             />
           </div>
         </div>
-      )}
 
-      {/* TAB 2: Sellio */}
-      {activeTab === 'sellio' && (
-        <div className="subtab-content">
-          <div className="callout-banner callout-info">
-            <ShieldCheck size={16} className="callout-icon" />
-            <div className="callout-text">
-              <strong>Tarifa de Plataforma Sellio:</strong> La comisión de Sellio se cobra directamente a la empresa y es independiente de la comisión del comercial. Límite máximo funcional del <strong>5.0%</strong>.
-            </div>
-          </div>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+          Esta comisión la abona la empresa directamente al comercial por cada venta cerrada y confirmada.
+        </p>
+      </div>
 
-          <div className="form-group">
-            <label className="form-label">Modelo de Comisión Sellio</label>
-            <div className="type-toggle-group">
-              <button
-                type="button"
-                className={`type-toggle-btn ${sellioModel === 'fixed' ? 'active' : ''}`}
-                onClick={() => handleFieldChange('sellio_commission_model', 'fixed')}
-              >
-                Porcentaje Fijo (0% - 5%)
-              </button>
-              <button
-                type="button"
-                className={`type-toggle-btn ${sellioModel === 'volume_tiered' ? 'active' : ''}`}
-                onClick={() => handleFieldChange('sellio_commission_model', 'volume_tiered')}
-              >
-                Escalonada por Volumen Mensual
-              </button>
-            </div>
-          </div>
-
-          {sellioModel === 'fixed' ? (
-            <div className="form-group">
-              <label className="form-label">Comisión Fija Sellio (% sobre venta)</label>
-              <div className="input-with-suffix">
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max={SELLIO_MAX_COMMISSION_RATE}
-                  className={`form-input ${parseRate(sellioRate) > SELLIO_MAX_COMMISSION_RATE ? 'input-invalid' : ''}`}
-                  value={sellioRate}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value) || 0;
-                    handleFieldChange('sellio_commission_rate', Math.min(SELLIO_MAX_COMMISSION_RATE, Math.max(0, val)));
-                  }}
-                  placeholder="2.0"
-                />
-                <span className="input-suffix">%</span>
-              </div>
-              <span className="form-help-text">Máximo permitido en Sellio: {SELLIO_MAX_COMMISSION_RATE}%</span>
-            </div>
-          ) : (
-            <VolumeCommissionTiers
-              tiers={volumeTiers}
-              onChange={(updatedTiers) => handleFieldChange('volume_tiers', updatedTiers)}
-            />
-          )}
+      {/* 2. Configuración Comisión Sellio */}
+      <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: 'var(--radius-lg)', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            2. Comisión de Sellio
+          </h4>
+          <span className="badge badge-primary" style={{ fontSize: '10px' }}>
+            Máximo legal de Sellio: {SELLIO_MAX_COMMISSION_RATE}%
+          </span>
         </div>
-      )}
 
-      {/* TAB 3: Condiciones */}
-      {activeTab === 'conditions' && (
-        <div className="subtab-content">
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Momento de Devengo de Comisión</label>
-              <select
-                className="form-select"
-                value={paymentTrigger}
-                onChange={(e) => handleFieldChange('commission_payment_trigger', e.target.value)}
-              >
-                <option value="paid_sale">Venta cobrada efectivamente por la empresa</option>
-                <option value="confirmed_sale">Pedido / Contrato confirmado</option>
-                <option value="other">Acuerdo particular</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Plazo de Liquidación</label>
-              <select
-                className="form-select"
-                value={paymentPeriod}
-                onChange={(e) => handleFieldChange('payment_period', e.target.value)}
-              >
-                <option value="30 días fin de mes">30 días fin de mes</option>
-                <option value="15 días tras cobro">15 días tras cobro</option>
-                <option value="Inmediato a liquidación">Inmediato a liquidación</option>
-                <option value="Trimestral">Trimestral</option>
-              </select>
-            </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+              Modelo de Sellio
+            </label>
+            <select
+              value={values.sellioCommissionModel}
+              onChange={(e) => handleChange('sellioCommissionModel', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid #cbd5e1',
+                background: '#fff'
+              }}
+            >
+              <option value="fixed">Tasa Fija Estándar</option>
+              <option value="volume_tiered">Escalado Progresivo por Volumen</option>
+            </select>
           </div>
 
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Pedido Mínimo Comisionable (€)</label>
+          {values.sellioCommissionModel === 'fixed' && (
+            <div>
+              <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                Tasa Fija (%) — (Máx {SELLIO_MAX_COMMISSION_RATE}%)
+              </label>
               <input
                 type="number"
                 min="0"
-                step="50"
-                className="form-input"
-                value={minimumSale}
-                onChange={(e) => handleFieldChange('minimum_sale_value', parseFloat(e.target.value) || '')}
-                placeholder="Ej. 100 € (dejar vacío si no hay mínimo)"
+                max={SELLIO_MAX_COMMISSION_RATE}
+                step="0.1"
+                value={values.sellioCommissionRate}
+                onChange={(e) => handleChange('sellioCommissionRate', Math.min(SELLIO_MAX_COMMISSION_RATE, parseFloat(e.target.value) || 0))}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 0.8rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid #cbd5e1'
+                }}
               />
             </div>
+          )}
+        </div>
 
-            <div className="form-group">
-              <label className="form-label">Política de Devoluciones / Garantía</label>
-              <input
-                type="text"
-                className="form-input"
-                value={values.returns_policy || ''}
-                onChange={(e) => handleFieldChange('returns_policy', e.target.value)}
-                placeholder="Ej. 14 días desistimiento legal"
-              />
+        {values.sellioCommissionModel === 'volume_tiered' && (
+          <VolumeCommissionTiers readOnly />
+        )}
+      </div>
+
+      {/* Validaciones */}
+      {!validation.isValid && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)' }}>
+          {validation.errors.map((err, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '0.825rem' }}>
+              <AlertCircle size={14} />
+              <span>{err}</span>
             </div>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* TAB 4: Simulación */}
-      {activeTab === 'preview' && (
-        <div className="subtab-content">
-          <CommissionPreview
-            price={productPrice}
-            commercialCommissionRate={commercialRate}
-            commercialCommissionType={commercialType}
-            commercialCommissionAmount={commercialAmount}
-            sellioCommissionRate={sellioRate}
-            sellioCommissionModel={sellioModel}
-            volumeTiers={volumeTiers}
-          />
-        </div>
-      )}
+      {/* Previsualización en Vivo */}
+      <CommissionBreakdown
+        price={price}
+        commercialCommissionType={values.commercialCommissionType}
+        commercialCommissionRate={values.commercialCommissionRate}
+        commercialCommissionAmount={values.commercialCommissionAmount}
+        sellioCommissionModel={values.sellioCommissionModel}
+        sellioCommissionRate={values.sellioCommissionRate}
+      />
     </div>
   );
 };

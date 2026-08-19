@@ -19,5 +19,11 @@ export * from './Opportunities';
 export { default as AdminTransactions } from './Transactions';
 export * from './Transactions';
 
+export { default as AdminDisputes } from './Disputes';
+export * from './Disputes';
+
+export { default as AdminAudit } from './Audit';
+export * from './Audit';
+
 export { default as AdminSettings } from './Settings';
 export * from './Settings';

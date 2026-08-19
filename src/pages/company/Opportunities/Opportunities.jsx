@@ -1,48 +1,85 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, MapPin, Package, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, MapPin, Package, CheckCircle2, Sparkles, Layers, ShieldCheck } from 'lucide-react';
 import { Button, Modal } from '../../../components/common';
 import { DashboardHeader } from '../../../components/dashboard';
 import { useOpportunities } from '../../../hooks/useOpportunities';
 import { useProducts } from '../../../hooks/useProducts';
 import { SECTORS, REGIONS } from '../../../utils/constants';
+import { formatCurrency } from '../../../utils/formatters';
+import { OfferCommissionForm, CommissionBadge } from '../../../components/commissions';
+import { OpportunityStatus, OpportunityBadge } from '../../../components/opportunities';
 
 export const CompanyOpportunities = () => {
   const { opportunities, addOpportunity, removeOpportunity, loading } = useOpportunities();
   const { products } = useProducts();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [newOpp, setNewOpp] = useState({
+  const initialFormState = {
     title: '',
     sector: SECTORS[0],
-    targetTerritory: REGIONS[0],
-    commissionRate: '15% sobre facturación neta',
-    requirements: '',
-    selectedProductId: ''
-  });
+    category: 'Alimentación y Bebidas',
+    target_region: REGIONS[0],
+    selectedProductId: '',
+    product_name: '',
+    price: 100,
+    required_experience: 'Media (2-3 años)',
+    badge_type: 'NUEVA',
+    commercial_commission_type: 'percentage',
+    commercial_commission_rate: 15,
+    commercial_commission_amount: 0,
+    sellio_commission_model: 'fixed',
+    sellio_commission_rate: 2,
+    description: ''
+  };
+
+  const [formState, setFormState] = useState(initialFormState);
+
+  const handleProductSelect = (productId) => {
+    const selectedProd = products.find(p => p.id === productId);
+    if (selectedProd) {
+      setFormState(prev => ({
+        ...prev,
+        selectedProductId: productId,
+        product_name: selectedProd.name,
+        price: selectedProd.price || selectedProd.targetPrice || 100,
+        category: selectedProd.category || prev.category
+      }));
+    } else {
+      setFormState(prev => ({ ...prev, selectedProductId: productId }));
+    }
+  };
+
+  const handleCommissionChange = (updatedCommissions) => {
+    setFormState(prev => ({
+      ...prev,
+      ...updatedCommissions
+    }));
+  };
 
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
       await addOpportunity({
-        title: newOpp.title,
-        sector: newOpp.sector,
-        targetTerritory: newOpp.targetTerritory,
-        commissionRate: newOpp.commissionRate,
-        requirements: newOpp.requirements,
-        productIds: newOpp.selectedProductId ? [newOpp.selectedProductId] : [],
-        products: newOpp.selectedProductId 
-          ? products.filter(p => p.id === newOpp.selectedProductId)
-          : []
+        title: formState.title || `Oportunidad: ${formState.product_name}`,
+        product_name: formState.product_name || formState.title,
+        company_name: 'Mi Empresa SL',
+        category: formState.category,
+        sector: formState.sector,
+        target_region: formState.target_region,
+        price: Number(formState.price),
+        commercial_commission_rate: Number(formState.commercial_commission_rate),
+        commercial_commission_amount: Number(formState.commercial_commission_amount),
+        commercial_commission_type: formState.commercial_commission_type,
+        sellio_commission_rate: Number(formState.sellio_commission_rate),
+        sellio_commission_model: formState.sellio_commission_model,
+        required_experience: formState.required_experience,
+        badge_type: formState.badge_type,
+        is_verified_company: true,
+        description: formState.description,
+        productIds: formState.selectedProductId ? [formState.selectedProductId] : []
       });
       setModalOpen(false);
-      setNewOpp({
-        title: '',
-        sector: SECTORS[0],
-        targetTerritory: REGIONS[0],
-        commissionRate: '15% sobre facturación neta',
-        requirements: '',
-        selectedProductId: ''
-      });
+      setFormState(initialFormState);
     } catch (err) {
       alert('Error al publicar oportunidad: ' + err.message);
     }
@@ -56,154 +93,207 @@ export const CompanyOpportunities = () => {
 
   return (
     <div className="company-opportunities-page">
-      <DashboardHeader
-        title="Oportunidades Comerciales Publicadas"
-        subtitle="Publica necesidades de comercialización asociadas a tus productos reales para captar agentes comerciales."
-        action={
-          <Button variant="primary" icon={Plus} onClick={() => setModalOpen(true)}>
-            Publicar Nueva Oportunidad
-          </Button>
-        }
-      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <DashboardHeader
+          title="Oportunidades Comerciales Publicadas"
+          subtitle="Publica necesidades de comercialización por zona geográfica con condiciones de comisión claras."
+        />
+        <Button variant="primary" icon={Plus} onClick={() => setModalOpen(true)}>
+          Crear Nueva Oportunidad
+        </Button>
+      </div>
 
-      <div className="dash-card" style={{ marginTop: '1.5rem' }}>
+      <div className="dash-card" style={{ marginTop: '1.5rem', background: '#fff', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-card)' }}>
+        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem' }}>
+          Tus Oportunidades Activas en el Mercado
+        </h3>
+
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Cargando oportunidades...</div>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Cargando oportunidades...</div>
         ) : opportunities.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            <p>No tienes oportunidades comerciales publicadas actualmente.</p>
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            No tienes oportunidades comerciales publicadas. Pulsa en "Crear Nueva Oportunidad" para empezar.
           </div>
         ) : (
-          <table className="dash-table">
-            <thead>
-              <tr>
-                <th>Título de Oportunidad</th>
-                <th>Sector</th>
-                <th>Territorio Objetivo</th>
-                <th>Comisión Ofrecida</th>
-                <th>Productos Asociados</th>
-                <th>Postulaciones</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {opportunities.map(o => (
-                <tr key={o.id}>
-                  <td><strong>{o.title}</strong></td>
-                  <td>{o.sector}</td>
-                  <td><MapPin size={12} style={{ display: 'inline', marginRight: '4px' }} />{o.targetTerritory}</td>
-                  <td><span className="badge badge-primary">{o.commissionRate}</span></td>
-                  <td>
-                    {o.products && o.products.length > 0 ? (
-                      <span className="badge badge-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Package size={12} /> {o.products[0].name.slice(0, 20)}...
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Sin vincular</span>
-                    )}
-                  </td>
-                  <td><span className="badge badge-success">{o.applicationsCount || 0} comerciales</span></td>
-                  <td><span className="badge badge-success">{o.status === 'published' ? 'Activa' : o.status}</span></td>
-                  <td>
-                    <div className="table-actions">
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(o.id)}>
-                        <Trash2 size={16} color="#ef4444" />
-                      </Button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+            {opportunities.map((opp) => (
+              <div
+                key={opp.id}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <OpportunityBadge type={opp.badge_type || 'NUEVA'} />
+                    <OpportunityStatus status={opp.status || 'published'} />
+                  </div>
+
+                  <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '1.1rem', fontWeight: 800 }}>
+                    {opp.product_name || opp.title}
+                  </h4>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '0.85rem' }}>
+                    <MapPin size={14} color="#64748b" />
+                    <span>Zona: <strong>{opp.target_region || opp.targetTerritory}</strong></span>
+                  </div>
+
+                  <div style={{
+                    background: '#ffffff',
+                    padding: '0.85rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '1rem'
+                  }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Precio Base</span>
+                      <strong style={{ fontSize: '1rem' }}>{formatCurrency(opp.price || 100)}</strong>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: '#047857', display: 'block' }}>Comisión Comercial</span>
+                      <CommissionBadge rate={opp.commercial_commission_rate || 15} variant="emerald" />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #edf2f7', paddingTop: '0.75rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    Versión {opp.offer_version || 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(opp.id)}
+                    style={{
+                      color: '#dc2626',
+                      background: 'none',
+                      fontSize: '0.8rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Trash2 size={14} /> Retirar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
+      {/* Modal Crear Oportunidad con Configuración de Comisiones */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title="Publicar Oportunidad de Expansión Comercial"
+        title="Publicar Oportunidad Comercial en Sellio"
       >
-        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="form-group">
-            <label className="form-label">Título de la Oportunidad / Perfil buscado</label>
-            <input
-              type="text"
-              className="form-input"
-              required
-              value={newOpp.title}
-              onChange={(e) => setNewOpp({ ...newOpp, title: e.target.value })}
-              placeholder="Ej. Comercial HORECA para distribución en Cataluña"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Producto Real del Catálogo Vinculado</label>
+        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+              Vincular a Producto del Catálogo (Opcional)
+            </label>
             <select
-              className="form-select"
-              value={newOpp.selectedProductId}
-              onChange={(e) => setNewOpp({ ...newOpp, selectedProductId: e.target.value })}
+              value={formState.selectedProductId}
+              onChange={(e) => handleProductSelect(e.target.value)}
+              style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid #cbd5e1' }}
             >
-              <option value="">-- Seleccionar producto del catálogo --</option>
+              <option value="">-- Seleccionar o crear ad-hoc --</option>
               {products.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>{p.name} ({formatCurrency(p.price || p.targetPrice || 0)})</option>
               ))}
             </select>
-            <small style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginTop: '4px' }}>
-              Debe vincularse a un producto real validado para inspirar máxima confianza al comercial.
-            </small>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                Título de la Oportunidad / Producto
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Ej: Distribución de AOVE Ecológico en Cataluña"
+                value={formState.title}
+                onChange={(e) => setFormState({ ...formState, title: e.target.value, product_name: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                Precio Base (€)
+              </label>
+              <input
+                type="number"
+                min="1"
+                step="0.5"
+                value={formState.price}
+                onChange={(e) => setFormState({ ...formState, price: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid #cbd5e1' }}
+              />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label">Sector</label>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                Zona o Territorio Objetivo
+              </label>
               <select
-                className="form-select"
-                value={newOpp.sector}
-                onChange={(e) => setNewOpp({ ...newOpp, sector: e.target.value })}
+                value={formState.target_region}
+                onChange={(e) => setFormState({ ...formState, target_region: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid #cbd5e1' }}
               >
-                {SECTORS.map((s, i) => <option key={i} value={s}>{s}</option>)}
+                {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Zona o Territorio Objetivo</label>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                Experiencia Requerida
+              </label>
               <select
-                className="form-select"
-                value={newOpp.targetTerritory}
-                onChange={(e) => setNewOpp({ ...newOpp, targetTerritory: e.target.value })}
+                value={formState.required_experience}
+                onChange={(e) => setFormState({ ...formState, required_experience: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid #cbd5e1' }}
               >
-                {REGIONS.map((r, i) => <option key={i} value={r}>{r}</option>)}
+                <option value="Baja (Iniciación comercial)">Baja (Iniciación comercial)</option>
+                <option value="Media (2-3 años)">Media (2-3 años)</option>
+                <option value="Alta (>4 años o cartera activa)">Alta (&gt;4 años o cartera activa)</option>
               </select>
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Comisión Ofrecida</label>
-            <input
-              type="text"
-              className="form-input"
-              required
-              value={newOpp.commissionRate}
-              onChange={(e) => setNewOpp({ ...newOpp, commissionRate: e.target.value })}
-              placeholder="Ej. 15% sobre facturación neta"
-            />
-          </div>
+          {/* Formulario de Comisiones con Validación y Previsualización */}
+          <OfferCommissionForm
+            price={formState.price}
+            values={{
+              commercialCommissionType: formState.commercial_commission_type,
+              commercialCommissionRate: formState.commercial_commission_rate,
+              commercialCommissionAmount: formState.commercial_commission_amount,
+              sellioCommissionModel: formState.sellio_commission_model,
+              sellioCommissionRate: formState.sellio_commission_rate
+            }}
+            onChange={handleCommissionChange}
+          />
 
-          <div className="form-group">
-            <label className="form-label">Requisitos del Comercial / Cartera</label>
-            <textarea
-              className="form-textarea"
-              rows={3}
-              value={newOpp.requirements}
-              onChange={(e) => setNewOpp({ ...newOpp, requirements: e.target.value })}
-              placeholder="Ej. Cartera consolidada de clientes en canal HORECA, mínimo 3 años de experiencia..."
-            />
-          </div>
-
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
-            <Button variant="primary" type="submit">Publicar en Marketplace</Button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+            <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="primary" type="submit">
+              Publicar Oportunidad (Versión 1)
+            </Button>
           </div>
         </form>
       </Modal>

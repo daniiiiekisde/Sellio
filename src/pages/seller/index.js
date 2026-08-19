@@ -10,6 +10,12 @@ export * from './Companies';
 export { default as SellerProducts } from './Products';
 export * from './Products';
 
+export { default as SellerAgreements } from './Agreements';
+export * from './Agreements';
+
+export { default as SellerSales } from './Sales';
+export * from './Sales';
+
 export { default as SellerRequests } from './Requests';
 export * from './Requests';
 

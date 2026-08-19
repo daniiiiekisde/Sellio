@@ -1,0 +1,167 @@
+/* SELLIO — Opportunity Components Styles */
+
+.opportunity-card {
+  background: #ffffff;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  overflow: hidden;
+}
+
+.opportunity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.opportunity-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #10b981);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.opportunity-card:hover::before {
+  opacity: 1;
+}
+
+.opportunity-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.opp-badge-new {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.opp-badge-high-comm {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.opp-badge-verified {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.opp-badge-urgent {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.opp-badge-popular {
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+/* Status Badges */
+.opp-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.opp-status-published {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.opp-status-draft {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.opp-status-pending_review {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.opp-status-paused {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.opp-status-expired {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+/* Comparison Table / Drawer */
+.compare-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.compare-modal-card {
+  background: #ffffff;
+  border-radius: var(--radius-2xl);
+  max-width: 1000px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: var(--shadow-2xl);
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.compare-table th, .compare-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.compare-table th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.compare-table td {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.compare-table tr:hover td {
+  background: #f8fafc;
+}

@@ -7,6 +7,12 @@ export * from './Products';
 export { default as CompanyOpportunities } from './Opportunities';
 export * from './Opportunities';
 
+export { default as CompanyAgreements } from './Agreements';
+export * from './Agreements';
+
+export { default as CompanySales } from './Sales';
+export * from './Sales';
+
 export { default as CompanyRequests } from './Requests';
 export * from './Requests';
 

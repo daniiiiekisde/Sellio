@@ -19,10 +19,15 @@ import {
   Layers,
   MessageSquare,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Handshake,
+  ShoppingCart,
+  AlertTriangle,
+  History
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { USER_ROLES, USER_ROLE_LABELS } from '../utils/constants';
+import { NotificationBell } from '../components/notifications';
 import './DashboardLayout.css';
 
 export const DashboardLayout = () => {
@@ -44,7 +49,6 @@ export const DashboardLayout = () => {
     else if (role === USER_ROLES.ADMIN) navigate('/admin/dashboard');
   };
 
-  // Define role specific navigation items according to ESTRUCTURA_WEBAPP.md Section 14
   const getNavLinks = () => {
     switch (userType) {
       case USER_ROLES.COMPANY:
@@ -52,6 +56,8 @@ export const DashboardLayout = () => {
           { to: '/company/dashboard', label: 'Panel General', icon: LayoutDashboard },
           { to: '/company/products', label: 'Catálogo de Productos', icon: Package },
           { to: '/company/opportunities', label: 'Oportunidades de Expansión', icon: Sparkles },
+          { to: '/company/agreements', label: 'Acuerdos Comerciales', icon: Handshake },
+          { to: '/company/sales', label: 'Ventas Confirmadas', icon: ShoppingCart },
           { to: '/company/requests', label: 'Solicitudes Recibidas', icon: Inbox },
           { to: '/company/contacts', label: 'Red de Comerciales', icon: Users },
           { to: '/company/messages', label: 'Mensajes', icon: MessageSquare },
@@ -63,10 +69,12 @@ export const DashboardLayout = () => {
           { to: '/seller/marketplace', label: 'Explorar Oportunidades', icon: ShoppingBag },
           { to: '/seller/companies', label: 'Directorio Empresas', icon: Building2 },
           { to: '/seller/products', label: 'Mi Cartera de Productos', icon: Package },
+          { to: '/seller/agreements', label: 'Mis Acuerdos', icon: Handshake },
+          { to: '/seller/sales', label: 'Mis Ventas', icon: ShoppingCart },
           { to: '/seller/requests', label: 'Candidaturas Enviadas', icon: Inbox },
           { to: '/seller/contacts', label: 'Mis Contactos', icon: Users },
           { to: '/seller/messages', label: 'Mensajes', icon: MessageSquare },
-          { to: '/seller/commissions', label: 'Comisiones', icon: BadgePercent },
+          { to: '/seller/commissions', label: 'Comisiones Ganadas', icon: BadgePercent },
           { to: '/seller/profile', label: 'Mi Perfil Comercial', icon: User },
         ];
       case USER_ROLES.ADMIN:
@@ -77,6 +85,8 @@ export const DashboardLayout = () => {
           { to: '/admin/sellers', label: 'Comerciales', icon: User },
           { to: '/admin/products', label: 'Moderación Catálogos', icon: Package },
           { to: '/admin/opportunities', label: 'Moderación Oportunidades', icon: Sparkles },
+          { to: '/admin/disputes', label: 'Resolución Disputas', icon: AlertTriangle },
+          { to: '/admin/audit', label: 'Libro de Auditoría', icon: History },
           { to: '/admin/transactions', label: 'Transacciones y Planes', icon: CreditCard },
           { to: '/admin/settings', label: 'Ajustes de Plataforma', icon: Settings },
         ];
@@ -160,7 +170,9 @@ export const DashboardLayout = () => {
             </span>
           </div>
 
-          <div className="topbar-right">
+          <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <NotificationBell />
+
             {/* Quick Role Switcher (Solo visible en Modo Demo / Desarrollo) */}
             {isDemoMode ? (
               <div className="role-switcher-container">
