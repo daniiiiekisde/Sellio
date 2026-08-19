@@ -1,178 +1,150 @@
 -- ==============================================================================
--- SELLIO — MVP COMPLETE SCHEMA
+-- SELLIO — MVP COMPLETE SCHEMA / EXTENSION
 -- Migration: 20260819_mvp_complete_schema
 -- ==============================================================================
--- This migration extends the existing Sellio backend without dropping existing data.
--- Security rule: seller private identity data is never publicly selectable.
--- Economic rule: Sellio commission is capped at 5% and is independent from seller commission.
+-- This migration EXTENDS the existing Sellio schema. It intentionally does not
+-- recreate or replace the original tables because the project already contains
+-- the foundational backend migrations from 2026-08-18.
+--
+-- Core invariants:
+--   1. Seller commission belongs entirely to the seller.
+--   2. Sellio commission is charged separately to the company.
+--   3. Sellio commission can never exceed 5%.
+--   4. Seller legal/private identity remains in seller_private_data.
+--   5. Historical financial conditions must be frozen.
 -- ==============================================================================
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- ------------------------------------------------------------------------------
+-- 1. OPPORTUNITY COMMERCIAL MODEL
+-- ------------------------------------------------------------------------------
+ALTER TABLE public.opportunities
+  ADD COLUMN IF NOT EXISTS product_name TEXT,
+  ADD COLUMN IF NOT EXISTS category TEXT,
+  ADD COLUMN IF NOT EXISTS sector TEXT,
+  ADD COLUMN IF NOT EXISTS target_region TEXT,
+  ADD COLUMN IF NOT EXISTS price NUMERIC(12,2) CHECK (price >= 0),
+  ADD COLUMN IF NOT EXISTS currency CHAR(3) DEFAULT 'EUR',
+  ADD COLUMN IF NOT EXISTS commercial_commission_type TEXT DEFAULT 'percentage',
+  ADD COLUMN IF NOT EXISTS commercial_commission_rate NUMERIC(5,2),
+  ADD COLUMN IF NOT EXISTS commercial_commission_amount NUMERIC(12,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS sellio_commission_model TEXT DEFAULT 'fixed',
+  ADD COLUMN IF NOT EXISTS sellio_commission_rate NUMERIC(5,2) DEFAULT 2,
+  ADD COLUMN IF NOT EXISTS offer_version INT DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS badge_type TEXT,
+  ADD COLUMN IF NOT EXISTS active_from TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS active_until TIMESTAMPTZ;
+
+UPDATE public.opportunities
+SET sellio_commission_rate = LEAST(5, GREATEST(0, COALESCE(sellio_commission_rate, 2)))
+WHERE sellio_commission_rate IS NULL OR sellio_commission_rate > 5 OR sellio_commission_rate < 0;
+
+ALTER TABLE public.opportunities
+  DROP CONSTRAINT IF EXISTS opportunities_sellio_commission_rate_check;
+
+ALTER TABLE public.opportunities
+  ADD CONSTRAINT opportunities_sellio_commission_rate_check
+  CHECK (sellio_commission_rate >= 0 AND sellio_commission_rate <= 5);
+
+ALTER TABLE public.opportunities
+  DROP CONSTRAINT IF EXISTS opportunities_commercial_commission_type_check;
+
+ALTER TABLE public.opportunities
+  ADD CONSTRAINT opportunities_commercial_commission_type_check
+  CHECK (commercial_commission_type IS NULL OR commercial_commission_type IN ('percentage','fixed_amount'));
+
+ALTER TABLE public.opportunities
+  DROP CONSTRAINT IF EXISTS opportunities_sellio_commission_model_check;
+
+ALTER TABLE public.opportunities
+  ADD CONSTRAINT opportunities_sellio_commission_model_check
+  CHECK (sellio_commission_model IS NULL OR sellio_commission_model IN ('fixed','volume_tiered'));
 
 -- ------------------------------------------------------------------------------
--- 1. TABLES
+-- 2. OFFER VERSIONING
 -- ------------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL UNIQUE,
-  role TEXT NOT NULL CHECK (role IN ('company','seller','admin')),
-  full_name TEXT,
-  avatar_url TEXT,
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+CREATE TABLE IF NOT EXISTS public.offer_versions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  opportunity_id UUID NOT NULL REFERENCES public.opportunities(id) ON DELETE CASCADE,
+  version INT NOT NULL,
+  commercial_commission_type TEXT NOT NULL,
+  commercial_commission_rate NUMERIC(5,2),
+  commercial_commission_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+  sellio_commission_model TEXT NOT NULL DEFAULT 'fixed',
+  sellio_commission_rate NUMERIC(5,2) NOT NULL CHECK (sellio_commission_rate >= 0 AND sellio_commission_rate <= 5),
+  price NUMERIC(12,2),
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  conditions JSONB NOT NULL DEFAULT '{}',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  UNIQUE(opportunity_id, version)
 );
 
-CREATE TABLE IF NOT EXISTS public.company_profiles (
-  id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  company_name TEXT NOT NULL,
-  trade_name TEXT,
-  cif_nif TEXT,
-  sector TEXT,
-  website TEXT,
-  description TEXT,
-  verification_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verification_status IN ('unverified','pending','verified','rejected')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.seller_profiles (
-  id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  handle TEXT NOT NULL UNIQUE,
-  first_name TEXT,
-  last_name TEXT,
-  dni_nie TEXT,
-  phone TEXT,
-  sectors TEXT[] NOT NULL DEFAULT '{}',
-  regions TEXT[] NOT NULL DEFAULT '{}',
-  languages TEXT[] NOT NULL DEFAULT '{"Español"}',
-  years_experience INT NOT NULL DEFAULT 0,
-  availability TEXT NOT NULL DEFAULT 'full_time',
-  verification_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verification_status IN ('unverified','pending','verified','rejected')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.products (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  company_id UUID NOT NULL REFERENCES public.company_profiles(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  category TEXT NOT NULL,
-  description TEXT,
-  price NUMERIC(12,2) NOT NULL CHECK (price >= 0),
-  currency TEXT NOT NULL DEFAULT 'EUR',
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.opportunities (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  company_id UUID NOT NULL REFERENCES public.company_profiles(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  product_name TEXT,
-  category TEXT,
-  sector TEXT NOT NULL,
-  target_region TEXT NOT NULL,
-  price NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (price >= 0),
-  currency TEXT NOT NULL DEFAULT 'EUR',
-  commercial_commission_type TEXT NOT NULL DEFAULT 'percentage' CHECK (commercial_commission_type IN ('percentage','fixed_amount')),
-  commercial_commission_rate NUMERIC(5,2) NOT NULL DEFAULT 15 CHECK (commercial_commission_rate >= 0 AND commercial_commission_rate <= 100),
-  commercial_commission_amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (commercial_commission_amount >= 0),
-  sellio_commission_model TEXT NOT NULL DEFAULT 'fixed' CHECK (sellio_commission_model IN ('fixed','volume_tiered')),
-  sellio_commission_rate NUMERIC(5,2) NOT NULL DEFAULT 2 CHECK (sellio_commission_rate >= 0 AND sellio_commission_rate <= 5),
-  required_experience TEXT,
-  badge_type TEXT DEFAULT 'NUEVA',
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','pending_review','published','paused','expired','archived','cancelled')),
-  offer_version INT NOT NULL DEFAULT 1 CHECK (offer_version >= 1),
-  active_from TIMESTAMPTZ DEFAULT NOW(),
-  active_until TIMESTAMPTZ,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.opportunity_products (
-  opportunity_id UUID REFERENCES public.opportunities(id) ON DELETE CASCADE,
-  product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
-  PRIMARY KEY (opportunity_id, product_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.agreements (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  company_id UUID NOT NULL REFERENCES public.company_profiles(id) ON DELETE RESTRICT,
-  seller_id UUID NOT NULL REFERENCES public.seller_profiles(id) ON DELETE RESTRICT,
-  opportunity_id UUID REFERENCES public.opportunities(id) ON DELETE SET NULL,
-  product_name TEXT NOT NULL,
-  agreed_price NUMERIC(12,2) NOT NULL CHECK (agreed_price >= 0),
-  agreed_commission_rate NUMERIC(5,2) NOT NULL CHECK (agreed_commission_rate >= 0 AND agreed_commission_rate <= 100),
-  agreed_commission_type TEXT NOT NULL DEFAULT 'percentage',
-  target_region TEXT,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','pending','active','completed','terminated','cancelled')),
-  signed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.sales (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  agreement_id UUID REFERENCES public.agreements(id) ON DELETE SET NULL,
-  company_id UUID NOT NULL REFERENCES public.company_profiles(id) ON DELETE RESTRICT,
-  seller_id UUID NOT NULL REFERENCES public.seller_profiles(id) ON DELETE RESTRICT,
-  opportunity_id UUID REFERENCES public.opportunities(id) ON DELETE SET NULL,
-  product_name TEXT NOT NULL,
-  client_name TEXT NOT NULL,
-  quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
-  unit_price NUMERIC(12,2) NOT NULL CHECK (unit_price >= 0),
-  sale_value NUMERIC(12,2) NOT NULL CHECK (sale_value >= 0),
-  commercial_rate_applied NUMERIC(5,2) NOT NULL CHECK (commercial_rate_applied >= 0 AND commercial_rate_applied <= 100),
-  commercial_commission_amount NUMERIC(12,2) NOT NULL CHECK (commercial_commission_amount >= 0),
-  sellio_rate_applied NUMERIC(5,2) NOT NULL CHECK (sellio_rate_applied >= 0 AND sellio_rate_applied <= 5),
-  sellio_commission_amount NUMERIC(12,2) NOT NULL CHECK (sellio_commission_amount >= 0),
-  company_net_amount NUMERIC(12,2) NOT NULL,
-  offer_version_applied INT NOT NULL DEFAULT 1,
-  status TEXT NOT NULL DEFAULT 'sale_confirmed' CHECK (status IN ('lead','interested','contacted','negotiation','agreement','sale_pending','sale_confirmed','cancelled','refunded')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
+-- ------------------------------------------------------------------------------
+-- 3. SALES SNAPSHOTS / FINANCIAL HISTORY
+-- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.sales_snapshots (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sale_id UUID NOT NULL UNIQUE REFERENCES public.sales(id) ON DELETE CASCADE,
   snapshot_data JSONB NOT NULL,
   frozen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.commission_ledger (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sale_id UUID NOT NULL REFERENCES public.sales(id) ON DELETE RESTRICT,
-  company_id UUID NOT NULL REFERENCES public.company_profiles(id) ON DELETE RESTRICT,
-  seller_id UUID NOT NULL REFERENCES public.seller_profiles(id) ON DELETE RESTRICT,
-  commercial_amount NUMERIC(12,2) NOT NULL CHECK (commercial_amount >= 0),
-  sellio_amount NUMERIC(12,2) NOT NULL CHECK (sellio_amount >= 0),
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','confirmed','approved','paid','cancelled','refunded','disputed')),
+  company_id UUID NOT NULL,
+  seller_id UUID NOT NULL,
+  commercial_amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (commercial_amount >= 0),
+  sellio_amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (sellio_amount >= 0),
+  sellio_rate_applied NUMERIC(5,2) NOT NULL DEFAULT 0 CHECK (sellio_rate_applied >= 0 AND sellio_rate_applied <= 5),
+  status TEXT NOT NULL DEFAULT 'pending',
   payment_date TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE public.commissions
+  ADD COLUMN IF NOT EXISTS source_type TEXT DEFAULT 'sale',
+  ADD COLUMN IF NOT EXISTS company_amount NUMERIC(12,2),
+  ADD COLUMN IF NOT EXISTS commission_role TEXT DEFAULT 'seller';
+
+ALTER TABLE public.sales
+  ADD COLUMN IF NOT EXISTS commercial_rate_applied NUMERIC(5,2),
+  ADD COLUMN IF NOT EXISTS commercial_commission_amount NUMERIC(12,2),
+  ADD COLUMN IF NOT EXISTS sellio_rate_applied NUMERIC(5,2),
+  ADD COLUMN IF NOT EXISTS sellio_commission_amount NUMERIC(12,2),
+  ADD COLUMN IF NOT EXISTS company_net_amount NUMERIC(12,2),
+  ADD COLUMN IF NOT EXISTS offer_version_applied INT;
+
+UPDATE public.sales
+SET sellio_rate_applied = LEAST(5, GREATEST(0, COALESCE(sellio_rate_applied, 0)))
+WHERE sellio_rate_applied IS NULL OR sellio_rate_applied > 5 OR sellio_rate_applied < 0;
+
+ALTER TABLE public.sales
+  DROP CONSTRAINT IF EXISTS sales_sellio_rate_applied_check;
+
+ALTER TABLE public.sales
+  ADD CONSTRAINT sales_sellio_rate_applied_check
+  CHECK (sellio_rate_applied IS NULL OR (sellio_rate_applied >= 0 AND sellio_rate_applied <= 5));
+
+-- ------------------------------------------------------------------------------
+-- 4. DISPUTES / VERIFICATION / AUDIT
+-- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.disputes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sale_id UUID REFERENCES public.sales(id) ON DELETE SET NULL,
-  company_id UUID NOT NULL REFERENCES public.company_profiles(id) ON DELETE RESTRICT,
-  seller_id UUID NOT NULL REFERENCES public.seller_profiles(id) ON DELETE RESTRICT,
+  company_id UUID NOT NULL,
+  seller_id UUID NOT NULL,
   raised_by TEXT NOT NULL CHECK (raised_by IN ('company','seller')),
   reason TEXT NOT NULL,
   amount_disputed NUMERIC(12,2) NOT NULL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','under_review','resolved','closed')),
+  status TEXT NOT NULL DEFAULT 'open',
   resolution_notes TEXT,
   resolved_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.audit_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_id UUID NOT NULL,
   actor_role TEXT NOT NULL,
   action TEXT NOT NULL,
@@ -182,54 +154,11 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS public.notifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  type TEXT NOT NULL,
-  title TEXT NOT NULL,
-  message TEXT NOT NULL,
-  read BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.verification_events (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  status TEXT NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.offer_versions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  opportunity_id UUID NOT NULL REFERENCES public.opportunities(id) ON DELETE CASCADE,
-  version INT NOT NULL,
-  commercial_commission_type TEXT NOT NULL,
-  commercial_commission_rate NUMERIC(5,2) NOT NULL,
-  commercial_commission_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
-  sellio_commission_model TEXT NOT NULL,
-  sellio_commission_rate NUMERIC(5,2) NOT NULL CHECK (sellio_commission_rate >= 0 AND sellio_commission_rate <= 5),
-  price NUMERIC(12,2) NOT NULL,
-  currency TEXT NOT NULL DEFAULT 'EUR',
-  conditions JSONB NOT NULL DEFAULT '{}',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(opportunity_id, version)
-);
-
 -- ------------------------------------------------------------------------------
--- 2. PRIVATE SELLER ACCESS
+-- 5. SERVER-SIDE COMMISSION CALCULATOR
 -- ------------------------------------------------------------------------------
--- Public discovery must not expose DNI/NIE, phone or legal identity.
-CREATE OR REPLACE VIEW public.public_seller_profiles AS
-SELECT id, handle, sectors, regions, languages, years_experience, availability, verification_status
-FROM public.seller_profiles;
-
--- ------------------------------------------------------------------------------
--- 3. COMMISSION ENGINE
--- ------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.calculate_commission(
-  p_price NUMERIC,
-  p_qty INT,
+CREATE OR REPLACE FUNCTION public.calculate_sellio_commission(
+  p_sale_value NUMERIC,
   p_commercial_rate NUMERIC,
   p_sellio_rate NUMERIC
 )
@@ -239,139 +168,38 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_sale_value NUMERIC;
   v_commercial_rate NUMERIC;
   v_sellio_rate NUMERIC;
   v_commercial NUMERIC;
   v_sellio NUMERIC;
-  v_net NUMERIC;
+  v_company_net NUMERIC;
 BEGIN
-  IF p_price < 0 OR p_qty <= 0 OR p_commercial_rate < 0 OR p_commercial_rate > 100 OR p_sellio_rate < 0 THEN
+  IF p_sale_value < 0 OR p_commercial_rate < 0 OR p_commercial_rate > 100 OR p_sellio_rate < 0 THEN
     RAISE EXCEPTION 'Invalid commission input';
   END IF;
 
-  v_sale_value := ROUND(p_price * p_qty, 2);
   v_commercial_rate := p_commercial_rate;
   v_sellio_rate := LEAST(5.00, p_sellio_rate);
-  v_commercial := ROUND(v_sale_value * v_commercial_rate / 100, 2);
-  v_sellio := ROUND(v_sale_value * v_sellio_rate / 100, 2);
-  v_net := ROUND(v_sale_value - v_commercial - v_sellio, 2);
+  v_commercial := ROUND(p_sale_value * v_commercial_rate / 100, 2);
+  v_sellio := ROUND(p_sale_value * v_sellio_rate / 100, 2);
+  v_company_net := ROUND(p_sale_value - v_commercial - v_sellio, 2);
 
   RETURN jsonb_build_object(
-    'sale_value', v_sale_value,
-    'commercial_commission', v_commercial,
+    'sale_value', ROUND(p_sale_value, 2),
     'commercial_rate', v_commercial_rate,
-    'sellio_commission', v_sellio,
+    'commercial_commission', v_commercial,
     'sellio_rate', v_sellio_rate,
-    'company_net', v_net
+    'sellio_commission', v_sellio,
+    'company_net', v_company_net
   );
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.calculate_commission(NUMERIC, INT, NUMERIC, NUMERIC) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.calculate_commission(NUMERIC, INT, NUMERIC, NUMERIC) TO authenticated;
+REVOKE ALL ON FUNCTION public.calculate_sellio_commission(NUMERIC, NUMERIC, NUMERIC) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.calculate_sellio_commission(NUMERIC, NUMERIC, NUMERIC) TO authenticated;
 
 -- ------------------------------------------------------------------------------
--- 4. RLS
--- ------------------------------------------------------------------------------
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.company_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.seller_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.opportunities ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.opportunity_products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.agreements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.sales ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.sales_snapshots ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.commission_ledger ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.verification_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.offer_versions ENABLE ROW LEVEL SECURITY;
-
--- Remove unsafe policies from previous versions when present.
-DROP POLICY IF EXISTS "Public sellers view" ON public.seller_profiles;
-DROP POLICY IF EXISTS "Public companies view" ON public.company_profiles;
-DROP POLICY IF EXISTS "Public products view" ON public.products;
-DROP POLICY IF EXISTS "Public opportunities view" ON public.opportunities;
-DROP POLICY IF EXISTS "Company owns products" ON public.products;
-DROP POLICY IF EXISTS "Company owns opportunities" ON public.opportunities;
-DROP POLICY IF EXISTS "Company/Seller view agreements" ON public.agreements;
-DROP POLICY IF EXISTS "Company/Seller view sales" ON public.sales;
-DROP POLICY IF EXISTS "Company/Seller view ledger" ON public.commission_ledger;
-DROP POLICY IF EXISTS "User notifications" ON public.notifications;
-
--- Public-safe discovery policies.
-CREATE POLICY "Public opportunities view" ON public.opportunities
-FOR SELECT TO anon, authenticated USING (status = 'published');
-
-CREATE POLICY "Public products view" ON public.products
-FOR SELECT TO anon, authenticated USING (is_active = true);
-
--- Company data is visible only to authenticated users; private edits are owner-only.
-CREATE POLICY "Authenticated companies view" ON public.company_profiles
-FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Company owns products" ON public.products
-FOR ALL TO authenticated USING (auth.uid() = company_id) WITH CHECK (auth.uid() = company_id);
-
-CREATE POLICY "Company owns opportunities" ON public.opportunities
-FOR ALL TO authenticated USING (auth.uid() = company_id) WITH CHECK (auth.uid() = company_id);
-
-CREATE POLICY "Company owns opportunity products" ON public.opportunity_products
-FOR ALL TO authenticated
-USING (EXISTS (SELECT 1 FROM public.opportunities o WHERE o.id = opportunity_id AND o.company_id = auth.uid()))
-WITH CHECK (EXISTS (SELECT 1 FROM public.opportunities o WHERE o.id = opportunity_id AND o.company_id = auth.uid()));
-
--- Seller private table: owner only. Public-safe data is exposed through the view above.
-CREATE POLICY "Seller owns private profile" ON public.seller_profiles
-FOR ALL TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "Users view own profile" ON public.profiles
-FOR SELECT TO authenticated USING (auth.uid() = id);
-
-CREATE POLICY "Users update own profile" ON public.profiles
-FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "Agreement participants view" ON public.agreements
-FOR SELECT TO authenticated USING (auth.uid() = company_id OR auth.uid() = seller_id);
-
-CREATE POLICY "Agreement company manage" ON public.agreements
-FOR ALL TO authenticated USING (auth.uid() = company_id) WITH CHECK (auth.uid() = company_id);
-
-CREATE POLICY "Sales participants view" ON public.sales
-FOR SELECT TO authenticated USING (auth.uid() = company_id OR auth.uid() = seller_id);
-
-CREATE POLICY "Commission participants view" ON public.commission_ledger
-FOR SELECT TO authenticated USING (auth.uid() = company_id OR auth.uid() = seller_id);
-
-CREATE POLICY "Dispute participants view" ON public.disputes
-FOR SELECT TO authenticated USING (auth.uid() = company_id OR auth.uid() = seller_id);
-
-CREATE POLICY "Dispute participants create" ON public.disputes
-FOR INSERT TO authenticated WITH CHECK (auth.uid() = company_id OR auth.uid() = seller_id);
-
-CREATE POLICY "User notifications" ON public.notifications
-FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "User verification events" ON public.verification_events
-FOR SELECT TO authenticated USING (auth.uid() = user_id);
-
-CREATE POLICY "Agreement offer versions view" ON public.offer_versions
-FOR SELECT TO authenticated USING (
-  EXISTS (SELECT 1 FROM public.opportunities o WHERE o.id = opportunity_id AND o.company_id = auth.uid())
-  OR EXISTS (
-    SELECT 1 FROM public.agreements a
-    WHERE a.opportunity_id = opportunity_id AND a.seller_id = auth.uid()
-  )
-);
-
--- Snapshots and audit logs are never client-writable/readable through broad policies.
--- Writes must happen through trusted backend functions.
-
--- ------------------------------------------------------------------------------
--- 5. IMMUTABILITY GUARD FOR FINANCIAL HISTORY
+-- 6. FINANCIAL IMMUTABILITY
 -- ------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.prevent_financial_history_mutation()
 RETURNS TRIGGER
@@ -388,14 +216,46 @@ BEFORE UPDATE OR DELETE ON public.sales_snapshots
 FOR EACH ROW EXECUTE FUNCTION public.prevent_financial_history_mutation();
 
 -- ------------------------------------------------------------------------------
--- 6. INDEXES
+-- 7. RLS FOR NEW FINANCIAL TABLES
 -- ------------------------------------------------------------------------------
-CREATE INDEX IF NOT EXISTS idx_products_company_id ON public.products(company_id);
-CREATE INDEX IF NOT EXISTS idx_opportunities_company_id ON public.opportunities(company_id);
-CREATE INDEX IF NOT EXISTS idx_opportunities_status ON public.opportunities(status);
-CREATE INDEX IF NOT EXISTS idx_opportunities_region ON public.opportunities(target_region);
-CREATE INDEX IF NOT EXISTS idx_sales_company_id ON public.sales(company_id);
-CREATE INDEX IF NOT EXISTS idx_sales_seller_id ON public.sales(seller_id);
-CREATE INDEX IF NOT EXISTS idx_ledger_company_id ON public.commission_ledger(company_id);
-CREATE INDEX IF NOT EXISTS idx_ledger_seller_id ON public.commission_ledger(seller_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
+ALTER TABLE public.offer_versions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sales_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.commission_ledger ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Offer versions participants read" ON public.offer_versions;
+CREATE POLICY "Offer versions participants read" ON public.offer_versions
+FOR SELECT TO authenticated
+USING (
+  EXISTS (SELECT 1 FROM public.opportunities o WHERE o.id = opportunity_id AND (o.company_id = current_company_id() OR is_admin()))
+  OR EXISTS (SELECT 1 FROM public.agreements a WHERE a.opportunity_id = opportunity_id AND (a.seller_id = current_seller_id() OR is_admin()))
+);
+
+DROP POLICY IF EXISTS "Commission ledger parties read" ON public.commission_ledger;
+CREATE POLICY "Commission ledger parties read" ON public.commission_ledger
+FOR SELECT TO authenticated
+USING (company_id = current_company_id() OR seller_id = current_seller_id() OR is_admin());
+
+DROP POLICY IF EXISTS "Dispute parties read" ON public.disputes;
+CREATE POLICY "Dispute parties read" ON public.disputes
+FOR SELECT TO authenticated
+USING (company_id = current_company_id() OR seller_id = current_seller_id() OR is_admin());
+
+DROP POLICY IF EXISTS "Dispute parties create" ON public.disputes;
+CREATE POLICY "Dispute parties create" ON public.disputes
+FOR INSERT TO authenticated
+WITH CHECK (company_id = current_company_id() OR seller_id = current_seller_id() OR is_admin());
+
+-- Snapshots and audit logs are intentionally not client-writable.
+
+-- ------------------------------------------------------------------------------
+-- 8. INDEXES
+-- ------------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_offer_versions_opportunity ON public.offer_versions(opportunity_id, version);
+CREATE INDEX IF NOT EXISTS idx_sales_snapshot_sale ON public.sales_snapshots(sale_id);
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_sale ON public.commission_ledger(sale_id);
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_company ON public.commission_ledger(company_id);
+CREATE INDEX IF NOT EXISTS idx_commission_ledger_seller ON public.commission_ledger(seller_id);
+CREATE INDEX IF NOT EXISTS idx_disputes_sale ON public.disputes(sale_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON public.audit_logs(entity_type, entity_id);
